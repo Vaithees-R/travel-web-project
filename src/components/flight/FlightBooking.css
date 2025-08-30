@@ -1,0 +1,7 @@
+.flight-booking-container input {
+  padding: 10px;
+  font-size: 1rem;
+}
+.trip-options button {
+  min-width: 120px;
+}

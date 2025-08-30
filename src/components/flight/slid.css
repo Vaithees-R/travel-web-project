@@ -1,0 +1,12 @@
+.card-slider .card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card-slider .card-img-top {
+  transition: transform 0.3s ease;
+}
+
+.card-slider .card:hover .card-img-top {
+  transform: scale(1.03);
+}

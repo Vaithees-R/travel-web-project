@@ -1,0 +1,22 @@
+.login-card {
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.login-card h2 {
+  font-weight: 600;
+  color: #333;
+}
+
+.login-card form .form-label {
+  font-weight: 500;
+}
+
+.login-card form input {
+  height: 45px;
+}
+
+.login-card form button {
+  height: 45px;
+  font-weight: 600;
+}
