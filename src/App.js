@@ -16,7 +16,7 @@ import Footer from "./components/footer";
 function App({travelType}) {
   return (
     <div className="App container mt-4">
-      <h1 className="text-center mb-4">Our Site For Your Fowers</h1>
+      <h1 className="text-center mb-4">ENJOY YOUR JOURNEY WITH OUR TRAVEL PARTNERS  </h1>
       <CardSlider travelType={travelType}/>
 
       {travelType === 'flights' && <FlightBooking />}
