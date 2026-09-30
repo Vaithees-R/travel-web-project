@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Luggage, ShieldCheck, MapPin } from 'lucide-react';
 import { TravelImageCarousel } from '../components/media/TravelImageCarousel';
 import { RouteTimeline } from '../components/travel/RouteTimeline';
@@ -7,6 +8,7 @@ import { TransportBadge } from '../components/ui/TransportBadge';
 import { FLIGHT_IMAGES } from '../assets/travelImages';
 
 export const FlightsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [filterType, setFilterType] = useState<'all' | 'domestic' | 'international'>('all');
 
   const domesticCorridors = [
@@ -142,6 +144,7 @@ export const FlightsPage: React.FC = () => {
                   arrivalTime={corridor.arrivalTime}
                   fare={corridor.fare}
                   variant="card"
+                  onSelect={() => navigate(`/flights/results?from=${encodeURIComponent(corridor.from)}&to=${encodeURIComponent(corridor.to)}`)}
                 />
               ))}
             </div>
@@ -173,6 +176,7 @@ export const FlightsPage: React.FC = () => {
                   arrivalTime={corridor.arrivalTime}
                   fare={corridor.fare}
                   variant="card"
+                  onSelect={() => navigate(`/flights/results?from=${encodeURIComponent(corridor.from)}&to=${encodeURIComponent(corridor.to)}`)}
                 />
               ))}
             </div>

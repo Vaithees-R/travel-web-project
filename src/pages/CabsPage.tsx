@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, ArrowDown, Users, Briefcase, Zap, Shield, CheckCircle2, PhoneCall } from 'lucide-react';
 import { TravelImageCarousel } from '../components/media/TravelImageCarousel';
 import { TransportBadge } from '../components/ui/TransportBadge';
 import { CAB_IMAGES } from '../assets/travelImages';
 
 export const CabsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [tripType, setTripType] = useState<'oneway' | 'roundtrip' | 'hourly'>('oneway');
   const [selectedVehicle, setSelectedVehicle] = useState('sedan');
   const [pickup, setPickup] = useState('Mumbai International Airport (BOM T2)');
@@ -184,6 +186,7 @@ export const CabsPage: React.FC = () => {
 
                   <button
                     type="button"
+                    onClick={() => navigate(`/cabs/results?from=${encodeURIComponent(pickup)}&to=${encodeURIComponent(destination)}&tripType=${tripType}&vehicle=${selectedVehicle}`)}
                     className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-lg shadow-indigo-600/30"
                   >
                     Confirm Chauffeur
@@ -311,7 +314,8 @@ export const CabsPage: React.FC = () => {
           {popularRoutes.map((route, i) => (
             <div
               key={i}
-              className="p-5 bg-white border border-neutral-200/80 rounded-2xl shadow-xs hover:border-indigo-400 transition-colors flex flex-col justify-between space-y-3"
+              onClick={() => navigate(`/cabs/results?from=${encodeURIComponent(route.from)}&to=${encodeURIComponent(route.to)}`)}
+              className="p-5 bg-white border border-neutral-200/80 rounded-2xl shadow-xs hover:border-indigo-400 cursor-pointer transition-colors flex flex-col justify-between space-y-3"
             >
               <div className="space-y-1.5">
                 <div className="text-xs font-semibold text-neutral-900">

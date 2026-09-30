@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Clock, ShieldCheck, Ticket } from 'lucide-react';
 import { TravelImageCarousel } from '../components/media/TravelImageCarousel';
 import { TrainJourneyTimeline } from '../components/travel/TrainJourneyTimeline';
@@ -7,6 +8,7 @@ import { TransportBadge } from '../components/ui/TransportBadge';
 import { TRAIN_IMAGES } from '../assets/travelImages';
 
 export const TrainsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<'all' | 'vande-bharat' | 'rajdhani' | 'shatabdi'>('all');
 
   const trainsFleet = [
@@ -233,6 +235,7 @@ export const TrainsPage: React.FC = () => {
               classTypes={train.classTypes}
               startingFare={train.startingPrice}
               availableSeats={train.availableSeats}
+              onSelect={() => navigate(`/trains/results?from=${encodeURIComponent(train.originCity)}&to=${encodeURIComponent(train.destinationCity)}`)}
             />
           ))}
         </div>

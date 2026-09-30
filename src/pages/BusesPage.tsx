@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navigation, Sparkles, Shield } from 'lucide-react';
 import { TravelImageCarousel } from '../components/media/TravelImageCarousel';
 import { BusRouteTimeline } from '../components/travel/BusRouteTimeline';
@@ -7,6 +8,7 @@ import { TransportBadge } from '../components/ui/TransportBadge';
 import { BUS_IMAGES } from '../assets/travelImages';
 
 export const BusesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [filterCategory, setFilterCategory] = useState<'all' | 'sleeper' | 'seater' | 'electric'>('all');
 
   const busRoutes = [
@@ -225,6 +227,7 @@ export const BusesPage: React.FC = () => {
               rating={route.rating}
               availableSeats={route.availableSeats}
               amenities={route.amenities}
+              onSelect={() => navigate(`/buses/results?from=${encodeURIComponent(route.departureCity)}&to=${encodeURIComponent(route.arrivalCity)}`)}
             />
           ))}
         </div>

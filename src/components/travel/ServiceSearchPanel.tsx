@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeftRight, Calendar, Users, MapPin, Search, Train, Bus } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
@@ -19,6 +20,8 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
   className,
   onSearch,
 }) => {
+  const navigate = useNavigate();
+
   // Flight specifics
   const [tripType, setTripType] = useState<'oneway' | 'roundtrip'>('oneway');
   const [cabinClass, setCabinClass] = useState('Economy');
@@ -47,13 +50,25 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch?.({
-      mode,
-      from,
-      to,
-      travelDate,
-      tripType: mode === 'cabs' ? cabTripType : tripType,
-    });
+    if (onSearch) {
+      onSearch({
+        mode,
+        from,
+        to,
+        travelDate,
+        tripType: mode === 'cabs' ? cabTripType : tripType,
+      });
+    } else {
+      const params = new URLSearchParams();
+      params.set('from', from);
+      params.set('to', to);
+      params.set('date', travelDate);
+      params.set('passengers', '1');
+      if (mode === 'flights') params.set('class', cabinClass);
+      if (mode === 'cabs') params.set('tripType', cabTripType);
+      if (mode === 'trains') params.set('quota', trainQuota);
+      navigate(`/${mode}/results?${params.toString()}`);
+    }
   };
 
   return (
