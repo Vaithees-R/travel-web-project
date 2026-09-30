@@ -1,3 +1,6 @@
+export type CanonicalTransportType = 'flight' | 'train' | 'bus' | 'cab';
+export type TransportType = CanonicalTransportType | 'flights' | 'trains' | 'buses' | 'cabs';
+
 export interface RouteItem {
   id: string;
   from: string;

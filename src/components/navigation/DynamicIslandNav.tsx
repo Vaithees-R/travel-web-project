@@ -33,11 +33,12 @@ export const DynamicIslandNav: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Experiment state: supports hover, focus-within, click-to-expand, and user pinning
+  // Interactive state
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const navRef = useRef<HTMLElement>(null);
 
   // Close mobile menu on route change
@@ -45,17 +46,47 @@ export const DynamicIslandNav: React.FC = () => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Intelligent scroll listener: optimize visual weight and avoid obscuring content
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 25);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Keyboard accessibility: Escape collapses navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !isPinned) {
+        setIsFocused(false);
+        setIsHovered(false);
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPinned]);
+
   // Determine current active mode
   const currentMode = TRAVEL_MODES.find((m) => location.pathname === m.path);
-  const activeLabel = currentMode ? currentMode.label : location.pathname === '/' ? 'Home' : 'Travel';
+  const activeLabel = currentMode ? currentMode.label : location.pathname === '/' ? 'Home' : location.pathname === '/about' ? 'About' : location.pathname === '/bookings' ? 'Trips' : 'Voyage';
 
-  // Expansion condition: expanded if hovered, keyboard focused, pinned, or mobile menu is active
+  // Expansion condition
   const isExpanded = isHovered || isFocused || isPinned || mobileMenuOpen;
 
   return (
     <>
       {/* Top Floating Dynamic Island Container */}
-      <header className="fixed top-3 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+      <header
+        className={cn(
+          'fixed top-2.5 sm:top-3 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none transition-all duration-300',
+          isScrolled && !isExpanded ? 'opacity-95' : 'opacity-100'
+        )}
+      >
         <nav
           ref={navRef}
           role="navigation"
@@ -71,32 +102,32 @@ export const DynamicIslandNav: React.FC = () => {
           }}
           className={cn(
             'pointer-events-auto transition-all duration-300 ease-out',
-            'bg-neutral-900/95 backdrop-blur-md text-white border border-neutral-700/60 shadow-lg',
+            'bg-neutral-950/90 backdrop-blur-md text-white border border-neutral-700/60 shadow-xl',
             'flex items-center',
             isExpanded
-              ? 'rounded-2xl px-3 py-2 w-full max-w-2xl justify-between'
-              : 'rounded-full px-4 py-2 w-auto gap-3 cursor-pointer hover:bg-neutral-800 hover:border-neutral-600'
+              ? 'rounded-2xl px-3 py-1.5 w-full max-w-2xl justify-between'
+              : 'rounded-full px-3.5 py-1.5 w-auto gap-3 cursor-pointer hover:bg-neutral-900 hover:border-neutral-500'
           )}
         >
           {/* Brand & Compact Pill State */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-lg p-1"
-              title="Return to Home"
+              className="flex items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-lg p-1 group"
+              title="Return to VoyageHub Home"
             >
-              <div className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs">
-                <Compass className="w-4 h-4" />
+              <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs group-hover:scale-105 transition-transform">
+                <Compass className="w-3.5 h-3.5" />
               </div>
-              <span className="font-semibold text-sm tracking-tight text-white">
+              <span className="font-semibold text-xs sm:text-sm tracking-tight text-white">
                 Voyage<span className="text-emerald-400">Hub</span>
               </span>
             </button>
 
             {/* Inactive state badge indicator */}
             {!isExpanded && (
-              <div className="flex items-center gap-2 pl-1 border-l border-neutral-700">
-                <span className="text-xs text-neutral-300 font-medium">
+              <div className="flex items-center gap-2 pl-2 border-l border-neutral-800 text-xs">
+                <span className="text-neutral-300 font-medium text-[11px] sm:text-xs">
                   {activeLabel}
                 </span>
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -118,8 +149,8 @@ export const DynamicIslandNav: React.FC = () => {
                       'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400',
                       isActive
-                        ? 'bg-white text-neutral-900 shadow-xs'
-                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800'
+                        ? 'bg-white text-neutral-900 shadow-xs font-semibold'
+                        : 'text-neutral-300 hover:text-white hover:bg-neutral-800/80'
                     )}
                   >
                     <Icon className="w-3.5 h-3.5" />
@@ -132,29 +163,43 @@ export const DynamicIslandNav: React.FC = () => {
 
           {/* Actions & Controls */}
           {isExpanded ? (
-            <div className="hidden md:flex items-center gap-1.5 border-l border-neutral-700 pl-2">
+            <div className="hidden md:flex items-center gap-1 border-l border-neutral-800 pl-2">
               <NavLink
                 to="/bookings"
                 className={cn(
-                  'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800',
+                  'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
                   location.pathname === '/bookings' && 'text-emerald-400 bg-neutral-800'
                 )}
-                title="My Bookings"
+                title="My Bookings & Itinerary"
               >
                 <Ticket className="w-3.5 h-3.5" />
                 <span>Trips</span>
               </NavLink>
 
               <NavLink
+                to="/about"
+                className={cn(
+                  'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
+                  location.pathname === '/about' && 'text-emerald-400 bg-neutral-800'
+                )}
+                title="Editorial Story"
+              >
+                <span>About</span>
+              </NavLink>
+
+              <NavLink
                 to="/login"
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800 transition-colors"
+                className={cn(
+                  'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors',
+                  (location.pathname === '/login' || location.pathname === '/register') && 'text-emerald-400 bg-neutral-800'
+                )}
                 title="Account Login"
               >
                 <User className="w-3.5 h-3.5" />
                 <span>Login</span>
               </NavLink>
 
-              {/* Experiment helper: Pin / Unpin button */}
+              {/* Pin / Unpin button */}
               <button
                 type="button"
                 onClick={() => setIsPinned(!isPinned)}
@@ -162,7 +207,7 @@ export const DynamicIslandNav: React.FC = () => {
                   'p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400',
                   isPinned && 'text-emerald-400 bg-neutral-800'
                 )}
-                title={isPinned ? 'Unpin navigation (enable hover auto-collapse)' : 'Pin navigation (keep expanded)'}
+                title={isPinned ? 'Unpin navigation' : 'Pin navigation expanded'}
                 aria-label={isPinned ? 'Unpin navigation' : 'Pin navigation'}
               >
                 {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
@@ -171,8 +216,8 @@ export const DynamicIslandNav: React.FC = () => {
           ) : (
             /* Idle trigger helper hint */
             <div className="flex items-center gap-1 text-[11px] text-neutral-400 select-none">
-              <span className="hidden sm:inline">Services</span>
-              <kbd className="hidden sm:inline-block px-1 py-0.5 text-[9px] bg-neutral-800 rounded border border-neutral-700 font-mono text-neutral-400">
+              <span className="hidden sm:inline">Explore</span>
+              <kbd className="hidden sm:inline-block px-1 py-0.5 text-[9px] bg-neutral-800/80 rounded border border-neutral-700 font-mono text-neutral-400">
                 hover
               </kbd>
             </div>
@@ -192,13 +237,13 @@ export const DynamicIslandNav: React.FC = () => {
 
       {/* Mobile Drawer when Island is opened on smaller screens */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-neutral-900/60 backdrop-blur-xs md:hidden" onClick={() => setMobileMenuOpen(false)}>
+        <div className="fixed inset-0 z-40 bg-neutral-950/70 backdrop-blur-xs md:hidden" onClick={() => setMobileMenuOpen(false)}>
           <div 
-            className="absolute top-20 left-4 right-4 bg-neutral-900 border border-neutral-800 text-white rounded-2xl p-4 shadow-xl space-y-3"
+            className="absolute top-16 left-4 right-4 bg-neutral-900 border border-neutral-800 text-white rounded-2xl p-4 shadow-2xl space-y-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider px-2">
-              Travel Services
+            <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider px-1">
+              Travel Experiences
             </div>
             <div className="grid grid-cols-2 gap-2">
               {TRAVEL_MODES.map((mode) => {
@@ -209,8 +254,8 @@ export const DynamicIslandNav: React.FC = () => {
                     key={mode.id}
                     to={mode.path}
                     className={cn(
-                      'flex items-center gap-2 p-2.5 rounded-xl text-sm font-medium transition-colors',
-                      isActive ? 'bg-white text-neutral-900' : 'bg-neutral-800 text-neutral-200'
+                      'flex items-center gap-2 p-2.5 rounded-xl text-xs font-medium transition-colors',
+                      isActive ? 'bg-white text-neutral-900 font-semibold' : 'bg-neutral-800/80 text-neutral-200'
                     )}
                   >
                     <Icon className="w-4 h-4" />
@@ -219,12 +264,15 @@ export const DynamicIslandNav: React.FC = () => {
                 );
               })}
             </div>
-            <div className="border-t border-neutral-800 pt-3 flex items-center justify-between px-2">
-              <NavLink to="/bookings" className="text-sm text-neutral-300 hover:text-white flex items-center gap-1.5">
-                <Ticket className="w-4 h-4" />
+            <div className="border-t border-neutral-800 pt-3 flex items-center justify-between px-1 text-xs">
+              <NavLink to="/bookings" className="text-neutral-300 hover:text-white flex items-center gap-1.5 font-medium">
+                <Ticket className="w-3.5 h-3.5" />
                 <span>My Bookings</span>
               </NavLink>
-              <NavLink to="/login" className="text-sm text-emerald-400 font-medium">
+              <NavLink to="/about" className="text-neutral-300 hover:text-white font-medium">
+                About
+              </NavLink>
+              <NavLink to="/login" className="text-emerald-400 font-semibold">
                 Sign In
               </NavLink>
             </div>

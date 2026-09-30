@@ -5,16 +5,16 @@ import { Footer } from '../components/layout/Footer';
 
 export const RootLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50 text-neutral-900 antialiased font-sans">
+    <div className="min-h-screen flex flex-col bg-neutral-50 text-neutral-900 antialiased font-sans selection:bg-emerald-500 selection:text-white">
       {/* Floating Dynamic Island Navigation */}
       <DynamicIslandNav />
 
-      {/* Main Content Area with adequate top clearance */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+      {/* Main Content Area with ample clearance for dynamic island */}
+      <main className="flex-1 w-full flex flex-col pt-14 sm:pt-16">
         <Outlet />
       </main>
 
-      {/* Global Travel Footer */}
+      {/* Honest, project-oriented Global Travel Footer */}
       <Footer />
     </div>
   );
