@@ -38,6 +38,11 @@ class Booking(Base):
     selected_option = Column(JSON_TYPE, nullable=False)
     search_criteria = Column(JSON_TYPE, nullable=True)
     
+    # Phase 7 Payment tracking
+    payment_status = Column(String(50), default="paid", nullable=False) # paid, pending, failed
+    payment_method = Column(String(50), nullable=True) # upi, card, net_banking
+    payment_reference = Column(String(100), nullable=True)
+
     is_simulated = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)

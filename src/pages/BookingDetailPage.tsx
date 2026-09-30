@@ -275,29 +275,59 @@ export const BookingDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Fare Breakdown */}
-            <div className="p-5 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
-                Payment & Fare Statement
-              </h4>
+            {/* Fare Breakdown & Payment Statement */}
+            <div className="p-5 bg-neutral-50 rounded-2xl border border-neutral-100 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+                  Payment & Fare Statement
+                </h4>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                    {booking.paymentStatus === 'paid' ? 'Paid' : 'Payment Completed'}
+                  </span>
+                  <span className="text-[11px] text-neutral-500 capitalize">
+                    via {booking.paymentMethod?.replace('_', ' ') || 'Card'}
+                  </span>
+                </div>
+              </div>
+
               <div className="space-y-1.5 text-xs text-neutral-600 max-w-md">
                 <div className="flex justify-between">
                   <span>Subtotal Base Fare:</span>
-                  <span className="font-mono text-neutral-900">₹{booking.fareBreakdown.subtotalBaseFare.toLocaleString('en-IN')}</span>
+                  <span className="font-mono text-neutral-900">
+                    ₹{booking.fareBreakdown.subtotalBaseFare.toLocaleString('en-IN')}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Taxes & Terminal Fees:</span>
-                  <span className="font-mono text-neutral-900">₹{booking.fareBreakdown.taxesAndTerminalFees.toLocaleString('en-IN')}</span>
+                  <span className="font-mono text-neutral-900">
+                    ₹{booking.fareBreakdown.taxesAndTerminalFees.toLocaleString('en-IN')}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Passenger Safety & Service Fee:</span>
-                  <span className="font-mono text-neutral-900">₹{booking.fareBreakdown.safetyOrServiceFee.toLocaleString('en-IN')}</span>
-                </div>
+                {booking.fareBreakdown.safetyOrServiceFee > 0 && (
+                  <div className="flex justify-between">
+                    <span>Passenger Safety & Service Fee:</span>
+                    <span className="font-mono text-neutral-900">
+                      ₹{booking.fareBreakdown.safetyOrServiceFee.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between pt-2 border-t border-neutral-200 font-bold text-neutral-900 text-sm">
                   <span>Total Amount Paid:</span>
-                  <span className="font-mono">₹{booking.fareBreakdown.totalFare.toLocaleString('en-IN')}</span>
+                  <span className="font-mono">
+                    ₹{booking.fareBreakdown.totalFare.toLocaleString('en-IN')}
+                  </span>
                 </div>
               </div>
+
+              {booking.paymentReference && (
+                <div className="pt-2 border-t border-neutral-200 text-[11px] text-neutral-500 flex items-center justify-between">
+                  <span>Gateway Transaction Ref:</span>
+                  <span className="font-mono font-semibold text-neutral-800">
+                    {booking.paymentReference}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Cancellation Action */}

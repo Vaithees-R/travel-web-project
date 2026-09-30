@@ -202,3 +202,33 @@ def test_user_a_can_cancel_own_booking_and_status_persists(client, user_a):
     )
     assert get_res.status_code == 200
     assert get_res.json()["status"] == "cancelled"
+
+def test_create_booking_with_payment_details_and_persist(client, user_a):
+    token_a = user_a["access_token"]
+    payload_with_payment = dict(sample_booking_payload)
+    payload_with_payment["paymentStatus"] = "paid"
+    payload_with_payment["paymentMethod"] = "card"
+    payload_with_payment["paymentReference"] = "TXN-2026-CARD-VERIFY999"
+
+    res = client.post(
+        "/api/bookings",
+        headers={"Authorization": f"Bearer {token_a}"},
+        json=payload_with_payment,
+    )
+    assert res.status_code == 201
+    booking = res.json()
+    assert booking["paymentStatus"] == "paid"
+    assert booking["paymentMethod"] == "card"
+    assert booking["paymentReference"] == "TXN-2026-CARD-VERIFY999"
+
+    # Fetch it back and verify persistence
+    get_res = client.get(
+        f"/api/bookings/{booking['id']}",
+        headers={"Authorization": f"Bearer {token_a}"},
+    )
+    assert get_res.status_code == 200
+    fetched = get_res.json()
+    assert fetched["paymentStatus"] == "paid"
+    assert fetched["paymentMethod"] == "card"
+    assert fetched["paymentReference"] == "TXN-2026-CARD-VERIFY999"
+

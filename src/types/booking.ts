@@ -96,7 +96,15 @@ export interface Passenger {
   phone: string;
   gender?: 'male' | 'female' | 'other';
   age?: number;
+  dateOfBirth?: string;
+  nationality?: string;
+  passportNumber?: string;
+  passportExpiry?: string;
+  passportCountry?: string;
   berthOrSeatPreference?: string;
+  pickupAddress?: string;
+  dropAddress?: string;
+  specialInstructions?: string;
 }
 
 export interface FareBreakdown {
@@ -125,6 +133,9 @@ export interface Booking {
   passengersCount: number;
   seatOrBerthAllocated: string;
   fareBreakdown: FareBreakdown;
+  paymentStatus?: 'paid' | 'pending' | 'failed';
+  paymentMethod?: 'card' | 'upi' | 'net_banking';
+  paymentReference?: string;
   isSimulated: true;
 }
 

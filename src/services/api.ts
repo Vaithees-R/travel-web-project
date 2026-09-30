@@ -130,6 +130,9 @@ function adaptBooking(data: any): Booking {
     passengersCount: data.passengersCount || data.passenger_count || 1,
     seatOrBerthAllocated: data.seatOrBerthAllocated || data.seat_allocation || 'Confirmed',
     fareBreakdown: data.fareBreakdown || data.fare_breakdown,
+    paymentStatus: data.paymentStatus || data.payment_status || 'paid',
+    paymentMethod: data.paymentMethod || data.payment_method || 'card',
+    paymentReference: data.paymentReference || data.payment_reference,
     isSimulated: true,
   };
 }
@@ -213,6 +216,9 @@ export const api = {
           fareBreakdown: bookingData.fareBreakdown,
           bookingRef: bookingData.bookingRef,
           bookingId: bookingData.id,
+          paymentMethod: bookingData.paymentMethod || 'card',
+          paymentStatus: bookingData.paymentStatus || 'paid',
+          paymentReference: bookingData.paymentReference,
         }),
       });
       return adaptBooking(raw);

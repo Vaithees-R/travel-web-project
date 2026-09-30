@@ -21,6 +21,8 @@ export interface BookingItineraryItem {
   passengerNames?: string[];
   seatOrBerth?: string; // e.g. "Seat 12F", "Coach C3, 24", "Berth U4"
   fare: number;
+  paymentStatus?: string;
+  paymentMethod?: string;
 }
 
 export interface BookingItineraryCardProps {
@@ -147,11 +149,20 @@ export const BookingItineraryCard: React.FC<BookingItineraryCardProps> = ({
         {/* Fare & Quick Actions */}
         <div className="md:col-span-4 md:border-l md:border-neutral-100 md:pl-6 flex flex-col justify-between space-y-4">
           <div>
-            <span className="text-[11px] text-neutral-400 block">Total fare paid</span>
-            <div className="text-xl font-bold text-neutral-900">
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="text-[11px] text-neutral-400">Total fare paid</span>
+              {booking.paymentStatus && (
+                <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
+                  {booking.paymentStatus === 'paid' ? 'Paid' : booking.paymentStatus}
+                </span>
+              )}
+            </div>
+            <div className="text-xl font-bold text-neutral-900 font-mono">
               ₹{booking.fare.toLocaleString('en-IN')}
             </div>
-            <span className="text-[10px] text-emerald-700">Tax invoice available</span>
+            <span className="text-[10px] text-neutral-500 capitalize">
+              {booking.paymentMethod ? `via ${booking.paymentMethod.replace('_', ' ')}` : 'Instant Confirmation'}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">

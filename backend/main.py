@@ -35,6 +35,15 @@ def seed_default_traveler():
 async def lifespan(app: FastAPI):
     # Initialize database tables
     Base.metadata.create_all(bind=engine)
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'paid' NOT NULL;"))
+            conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50);"))
+            conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(100);"))
+            conn.commit()
+    except Exception as e:
+        print(f"Database column ensure note: {e}")
     seed_default_traveler()
     yield
 

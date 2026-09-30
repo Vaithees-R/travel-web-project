@@ -41,9 +41,15 @@ def format_booking_response(b: Booking) -> BookingRead:
         travelOption=b.selected_option,
         searchCriteria=b.search_criteria,
         isSimulated=b.is_simulated,
+        paymentMethod=b.payment_method or "card",
+        paymentStatus=b.payment_status or "paid",
+        paymentReference=b.payment_reference,
         booking_reference=b.booking_reference,
         user_id=b.user_id,
         transport_type=b.transport_type,
+        payment_method=b.payment_method or "card",
+        payment_status=b.payment_status or "paid",
+        payment_reference=b.payment_reference,
     )
 
 def create_booking(db: Session, user_id: str, data: BookingCreate) -> BookingRead:
@@ -59,6 +65,9 @@ def create_booking(db: Session, user_id: str, data: BookingCreate) -> BookingRea
     departure_time = travel_opt.get("departureTime") or "08:00 AM"
     arrival_time = travel_opt.get("arrivalTime") or "11:30 AM"
     travel_date = search_crit.get("departureDate") or "Tomorrow, 08:30 AM"
+
+    # Simulated payment reference if none passed
+    simulated_payment_ref = data.paymentReference or f"TXN-2026-PAY-{''.join(random.choices(string.ascii_uppercase + string.digits, k=8))}"
 
     booking = Booking(
         id=booking_id,
@@ -78,6 +87,9 @@ def create_booking(db: Session, user_id: str, data: BookingCreate) -> BookingRea
         fare_breakdown=data.fareBreakdown,
         selected_option=travel_opt,
         search_criteria=search_crit,
+        payment_status=data.paymentStatus or "paid",
+        payment_method=data.paymentMethod or "card",
+        payment_reference=simulated_payment_ref,
         is_simulated=True,
     )
 

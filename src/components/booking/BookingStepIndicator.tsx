@@ -4,16 +4,17 @@ import { cn } from '../../utils/cn';
 import { CanonicalTransportType } from '../../types/travel';
 
 export interface BookingStepIndicatorProps {
-  currentStep: 'results' | 'passengers' | 'review' | 'confirmation';
+  currentStep: 'results' | 'passengers' | 'review' | 'checkout' | 'confirmation';
   service?: CanonicalTransportType;
   className?: string;
 }
 
 const STEPS = [
   { id: 'results', label: '1. Select Option' },
-  { id: 'passengers', label: '2. Traveller Details' },
-  { id: 'review', label: '3. Review & Summary' },
-  { id: 'confirmation', label: '4. Confirmed' },
+  { id: 'passengers', label: '2. Travellers' },
+  { id: 'review', label: '3. Review' },
+  { id: 'checkout', label: '4. Checkout & Pay' },
+  { id: 'confirmation', label: '5. Confirmed' },
 ];
 
 export const BookingStepIndicator: React.FC<BookingStepIndicatorProps> = ({

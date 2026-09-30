@@ -59,6 +59,8 @@ export const BookingsPage: React.FC = () => {
     passengerNames: [b.primaryPassenger.fullName],
     seatOrBerth: b.seatOrBerthAllocated,
     fare: b.fareBreakdown.totalFare,
+    paymentStatus: b.paymentStatus || 'paid',
+    paymentMethod: b.paymentMethod || 'card',
   }));
 
   // Counts for the filter tabs

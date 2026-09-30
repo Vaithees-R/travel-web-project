@@ -3,12 +3,51 @@ import { Booking, SearchCriteria, TravelOption, Passenger } from '../../types/bo
 const BOOKINGS_KEY = 'voyagehub_simulated_bookings';
 const ACTIVE_SESSION_KEY = 'voyagehub_active_booking_session';
 
+// Safe in-memory store fallback for SSR / headless test environments
+const memorySessionStore: Record<string, string> = {};
+const memoryLocalStore: Record<string, string> = {};
+
+function getSafeSessionStorage(): Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> {
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      return window.sessionStorage;
+    }
+  } catch {}
+  return {
+    getItem: (key: string) => memorySessionStore[key] ?? null,
+    setItem: (key: string, value: string) => {
+      memorySessionStore[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete memorySessionStore[key];
+    },
+  };
+}
+
+function getSafeLocalStorage(): Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage;
+    }
+  } catch {}
+  return {
+    getItem: (key: string) => memoryLocalStore[key] ?? null,
+    setItem: (key: string, value: string) => {
+      memoryLocalStore[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete memoryLocalStore[key];
+    },
+  };
+}
+
 export interface BookingSession {
   searchCriteria?: SearchCriteria;
   selectedOption?: TravelOption;
   passenger?: Passenger;
+  additionalPassengers?: Passenger[];
   selectedClass?: string;
-  step?: 'search' | 'results' | 'passengers' | 'review' | 'confirmation';
+  step?: 'search' | 'results' | 'passengers' | 'review' | 'checkout' | 'confirmation';
 }
 
 export const BookingStorageService = {
@@ -17,7 +56,8 @@ export const BookingStorageService = {
    */
   getBookings: (userId?: string): Booking[] => {
     try {
-      const data = localStorage.getItem(BOOKINGS_KEY);
+      const storage = getSafeLocalStorage();
+      const data = storage.getItem(BOOKINGS_KEY);
       if (!data) return [];
       const parsed = JSON.parse(data);
       const list: Booking[] = Array.isArray(parsed) ? parsed : [];
@@ -51,10 +91,11 @@ export const BookingStorageService = {
    */
   saveBooking: (booking: Booking): Booking => {
     try {
+      const storage = getSafeLocalStorage();
       const current = BookingStorageService.getBookings(); // all bookings
       // Prepend so newest appears first
       const updated = [booking, ...current.filter((b) => b.id !== booking.id)];
-      localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updated));
+      storage.setItem(BOOKINGS_KEY, JSON.stringify(updated));
       return booking;
     } catch (e) {
       console.error('Failed to save booking to localStorage', e);
@@ -67,6 +108,7 @@ export const BookingStorageService = {
    */
   cancelBooking: (id: string, userId?: string): boolean => {
     try {
+      const storage = getSafeLocalStorage();
       const current = BookingStorageService.getBookings();
       const updated = current.map((b) => {
         if (b.id === id && (!userId || b.userId === userId)) {
@@ -74,7 +116,7 @@ export const BookingStorageService = {
         }
         return b;
       });
-      localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updated));
+      storage.setItem(BOOKINGS_KEY, JSON.stringify(updated));
       return true;
     } catch (e) {
       console.error('Failed to cancel booking', e);
@@ -87,7 +129,8 @@ export const BookingStorageService = {
    */
   getActiveSession: (): BookingSession | null => {
     try {
-      const data = sessionStorage.getItem(ACTIVE_SESSION_KEY);
+      const storage = getSafeSessionStorage();
+      const data = storage.getItem(ACTIVE_SESSION_KEY);
       return data ? JSON.parse(data) : null;
     } catch {
       return null;
@@ -96,7 +139,8 @@ export const BookingStorageService = {
 
   saveActiveSession: (session: BookingSession): void => {
     try {
-      sessionStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(session));
+      const storage = getSafeSessionStorage();
+      storage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(session));
     } catch (e) {
       console.error('Failed to save session', e);
     }
@@ -104,7 +148,8 @@ export const BookingStorageService = {
 
   clearActiveSession: (): void => {
     try {
-      sessionStorage.removeItem(ACTIVE_SESSION_KEY);
+      const storage = getSafeSessionStorage();
+      storage.removeItem(ACTIVE_SESSION_KEY);
     } catch {}
   },
 

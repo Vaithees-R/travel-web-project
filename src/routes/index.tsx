@@ -11,6 +11,7 @@ import { BookingDetailPage } from '../pages/BookingDetailPage';
 import { SearchResultsPage } from '../pages/SearchResultsPage';
 import { PassengerDetailsPage } from '../pages/PassengerDetailsPage';
 import { BookingReviewPage } from '../pages/BookingReviewPage';
+import { CheckoutPage } from '../pages/CheckoutPage';
 import { BookingConfirmationPage } from '../pages/BookingConfirmationPage';
 import { AboutPage } from '../pages/AboutPage';
 import { LoginPage } from '../pages/LoginPage';
@@ -30,10 +31,12 @@ export const AppRoutes: React.FC = () => {
         <Route path="buses" element={<BusesPage />} />
         <Route path="cabs" element={<CabsPage />} />
 
-        {/* Phase 3: Functional Search & Booking Flow */}
+        {/* Phase 7: Functional Search, Review, Checkout & Booking Flow */}
         <Route path=":service/results" element={<SearchResultsPage />} />
         <Route path=":service/passengers" element={<PassengerDetailsPage />} />
         <Route path=":service/review" element={<BookingReviewPage />} />
+        <Route path=":service/checkout" element={<CheckoutPage />} />
+        <Route path="checkout" element={<CheckoutPage />} />
         <Route path=":service/confirmation/:bookingId" element={<BookingConfirmationPage />} />
 
         {/* Protected Travel Account & Itinerary Center */}

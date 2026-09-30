@@ -1,47 +1,64 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { ArrowLeft, ShieldAlert, Sparkles, Loader2, Calendar, Clock, MapPin, User, Luggage, AlertCircle, LogIn } from 'lucide-react';
+import React from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import {
+  ArrowLeft,
+  ArrowRight,
+  ShieldCheck,
+  Clock,
+  User,
+  AlertCircle,
+  CheckCircle2,
+  Lock,
+} from 'lucide-react';
 import { CanonicalTransportType } from '../types/travel';
 import { BookingStorageService } from '../services/booking/bookingStorage';
 import { FareCalculatorService } from '../services/booking/fareCalculator';
 import { BookingStepIndicator } from '../components/booking/BookingStepIndicator';
 import { TransportBadge } from '../components/ui/TransportBadge';
-import { useAuth } from '../hooks/useAuth';
-import { api } from '../services/api';
+import { FareBreakdown } from '../components/booking/FareBreakdown';
 
 export const BookingReviewPage: React.FC = () => {
   const { service: rawService } = useParams<{ service: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user, isAuthenticated } = useAuth();
 
-  const service: CanonicalTransportType = 
-    rawService === 'flights' || rawService === 'flight' ? 'flight' :
-    rawService === 'trains' || rawService === 'train' ? 'train' :
-    rawService === 'buses' || rawService === 'bus' ? 'bus' : 'cab';
+  const service: CanonicalTransportType =
+    rawService === 'flights' || rawService === 'flight'
+      ? 'flight'
+      : rawService === 'trains' || rawService === 'train'
+      ? 'train'
+      : rawService === 'buses' || rawService === 'bus'
+      ? 'bus'
+      : 'cab';
 
   const session = BookingStorageService.getActiveSession();
   const selectedOption = session?.selectedOption;
   const searchCriteria = session?.searchCriteria;
   const passenger = session?.passenger;
-  const selectedClass = session?.selectedClass || 'Standard';
+  const additionalPassengers = session?.additionalPassengers || [];
+  const selectedClass = session?.selectedClass || selectedOption?.selectedClass || 'Standard';
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const routePrefix =
+    service === 'flight'
+      ? 'flights'
+      : service === 'train'
+      ? 'trains'
+      : service === 'bus'
+      ? 'buses'
+      : 'cabs';
 
   // If session is incomplete, redirect gracefully
   if (!selectedOption || !passenger) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-        <div className="bg-white p-8 rounded-3xl border border-neutral-200 max-w-md text-center space-y-4">
+        <div className="bg-white p-8 rounded-3xl border border-neutral-200 max-w-md text-center space-y-4 shadow-sm">
           <AlertCircle className="w-12 h-12 text-amber-600 mx-auto" />
           <h2 className="text-xl font-bold text-neutral-900">Incomplete Booking Details</h2>
           <p className="text-xs text-neutral-500">
             It looks like some required booking details are missing. Please begin your search again.
           </p>
           <Link
-            to={`/${service === 'flight' ? 'flights' : service === 'train' ? 'trains' : service === 'bus' ? 'buses' : 'cabs'}`}
-            className="inline-block px-5 py-2.5 bg-neutral-900 text-white rounded-xl text-xs font-semibold"
+            to={`/${routePrefix}`}
+            className="inline-block px-5 py-2.5 bg-neutral-900 text-white rounded-xl text-xs font-semibold hover:bg-neutral-800 transition-colors"
           >
             Start Search
           </Link>
@@ -60,55 +77,16 @@ export const BookingReviewPage: React.FC = () => {
     if (matched) activeBaseFare = matched.fare;
   }
 
-  const passengersCount = searchCriteria?.passengers || 1;
+  const passengersCount = searchCriteria?.passengers || 1 + additionalPassengers.length;
   const fareBreakdown = FareCalculatorService.calculateFare(activeBaseFare, passengersCount, service);
 
-  const handleConfirmBooking = async () => {
-    if (!isAuthenticated || !user) {
-      navigate('/login', { state: { from: location } });
-      return;
-    }
-
-    setSubmitError(null);
-    setIsSubmitting(true);
-
-    try {
-      const bookingId = BookingStorageService.generateBookingId();
-      const bookingRef = BookingStorageService.generateReference(service);
-      const seatAllocation = BookingStorageService.generateSeatAllocation(service, selectedClass);
-
-      const payload = {
-        id: bookingId,
-        bookingRef,
-        service,
-        travelOption: selectedOption,
-        searchCriteria: searchCriteria || {
-          service,
-          from: selectedOption.originCity,
-          to: selectedOption.destinationCity,
-          departureDate: 'Tomorrow, 08:30 AM',
-          tripType: 'oneway' as const,
-          passengers: passengersCount,
-        },
-        primaryPassenger: passenger,
-        passengersCount,
-        seatOrBerthAllocated: seatAllocation,
-        fareBreakdown,
-      };
-
-      const createdBooking = await api.bookings.create(payload);
-
-      // Clear session only after successful API persistence
-      BookingStorageService.clearActiveSession();
-
-      const routePrefix = service === 'flight' ? 'flights' : service === 'train' ? 'trains' : service === 'bus' ? 'buses' : 'cabs';
-      navigate(`/${routePrefix}/confirmation/${createdBooking.id}`);
-    } catch (err: any) {
-      console.error('Failed to persist booking to PostgreSQL API', err);
-      setSubmitError('Unable to confirm your booking. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleProceedToCheckout = () => {
+    // Update step in session
+    BookingStorageService.saveActiveSession({
+      ...session,
+      step: 'checkout',
+    });
+    navigate(`/${routePrefix}/checkout`);
   };
 
   return (
@@ -125,222 +103,358 @@ export const BookingReviewPage: React.FC = () => {
         <div>
           <button
             type="button"
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-600 hover:text-neutral-900 transition-colors"
+            onClick={() => navigate(`/${routePrefix}/passengers`)}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-600 hover:text-neutral-900 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Passenger Details</span>
           </button>
         </div>
 
-        {/* Honest Simulation Disclaimer Banner */}
-        <div className="p-4 sm:p-5 bg-amber-500/10 border border-amber-300 rounded-3xl flex items-start gap-4">
-          <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <h4 className="text-xs sm:text-sm font-bold text-amber-900">
-              Interactive Frontend Simulation
-            </h4>
-            <p className="text-[11px] sm:text-xs text-amber-800 leading-relaxed">
-              This booking simulation demonstrates the full end-to-end customer journey without requiring real credit cards or actual payment. Clicking <strong>Confirm & Issue Ticket</strong> will instantly generate simulated travel documents, allocate a seat/berth, and synchronize with your browser&apos;s itinerary record.
+        {/* Header Notice */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-3xl border border-neutral-200/90 shadow-xs">
+          <div>
+            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">
+              Step 3 of 5
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black text-neutral-900">
+              Review Your Journey Details
+            </h1>
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Please carefully verify passenger names and route schedules before proceeding to secure
+              checkout.
             </p>
+          </div>
+          <div className="shrink-0 flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/70">
+            <Lock className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Prices Locked for 15 Mins</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Main Review Column (8 cols) */}
-          <div className="lg:col-span-8 space-y-6">
-            {/* Journey Summary Card */}
-            <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-xs p-6 space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-neutral-100">
+          {/* Left Column: Trip & Passenger Details (7 cols) */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* Transport-Specific Detailed Trip Card */}
+            <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-xs overflow-hidden">
+              {/* Header */}
+              <div className="p-5 sm:p-6 bg-neutral-900 text-white flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <TransportBadge type={service} size="md" variant="subtle" />
                   <div>
-                    <h3 className="text-base font-bold text-neutral-900">{selectedOption.operator}</h3>
-                    <p className="text-xs text-neutral-500 font-mono">{selectedOption.identifier} • {selectedClass}</p>
+                    <span className="text-xs text-neutral-400 block font-mono">
+                      {selectedOption.identifier}
+                    </span>
+                    <h3 className="text-base sm:text-lg font-bold">{selectedOption.operator}</h3>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="text-[11px] text-neutral-400 block">Class / Category</span>
+                  <span className="text-xs font-bold bg-neutral-800 text-neutral-200 px-2.5 py-1 rounded-lg">
+                    {selectedClass}
+                  </span>
+                </div>
+              </div>
+
+              {/* Schedule and corridor */}
+              <div className="p-5 sm:p-6 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center pb-6 border-b border-neutral-100">
+                  {/* Origin */}
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-neutral-400 block">
+                      Departure
+                    </span>
+                    <div className="text-2xl font-extrabold text-neutral-900">
+                      {selectedOption.departureTime}
+                    </div>
+                    <div className="text-sm font-bold text-neutral-800">
+                      {selectedOption.originCity} ({selectedOption.originCode})
+                    </div>
+                    <div className="text-xs text-neutral-500 mt-0.5">
+                      {selectedOption.originStationOrTerminal || selectedOption.originCity}
+                    </div>
+                  </div>
+
+                  {/* Duration middle indicator */}
+                  <div className="text-center py-2 sm:py-0 border-y sm:border-y-0 sm:border-x border-neutral-100">
+                    <span className="text-xs font-bold text-neutral-700 flex items-center justify-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-neutral-400" />
+                      <span>{selectedOption.duration}</span>
+                    </span>
+                    <div className="w-20 mx-auto h-[1.5px] bg-neutral-200 my-1.5" />
+                    <span className="text-[11px] font-semibold text-emerald-700">
+                      {selectedOption.stops === 0 ? 'Non-Stop Corridor' : `${selectedOption.stops} Stop`}
+                    </span>
+                  </div>
+
+                  {/* Destination */}
+                  <div className="text-left sm:text-right">
+                    <span className="text-[10px] uppercase font-bold text-neutral-400 block">
+                      Arrival
+                    </span>
+                    <div className="text-2xl font-extrabold text-neutral-900">
+                      {selectedOption.arrivalTime}
+                    </div>
+                    <div className="text-sm font-bold text-neutral-800">
+                      {selectedOption.destinationCity} ({selectedOption.destinationCode})
+                    </div>
+                    <div className="text-xs text-neutral-500 mt-0.5">
+                      {selectedOption.destinationStationOrTerminal || selectedOption.destinationCity}
+                    </div>
                   </div>
                 </div>
 
-                <span className="text-xs font-semibold bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200/60">
-                  Ready for Confirmation
-                </span>
-              </div>
+                {/* Specifics Grid depending on service */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                  {service === 'flight' && (
+                    <>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Aircraft
+                        </span>
+                        <strong className="text-neutral-800">{selectedOption.subType || 'Airbus A320'}</strong>
+                      </div>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Baggage
+                        </span>
+                        <strong className="text-neutral-800">{selectedOption.baggage || 'Cabin 7kg'}</strong>
+                      </div>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Refund Policy
+                        </span>
+                        <strong className="text-emerald-700">
+                          {selectedOption.isRefundable ? 'Refundable' : 'Standard'}
+                        </strong>
+                      </div>
+                    </>
+                  )}
 
-              {/* Route Schedule Strip */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-100 text-xs">
-                <div>
-                  <span className="text-[10px] uppercase font-bold text-neutral-400 block">Departure</span>
-                  <div className="text-lg font-bold text-neutral-900">{selectedOption.departureTime}</div>
-                  <div className="font-semibold text-neutral-800">{selectedOption.originCity} ({selectedOption.originCode})</div>
-                  <div className="text-[11px] text-neutral-400">{selectedOption.originStationOrTerminal}</div>
+                  {service === 'train' && (
+                    <>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Train Service
+                        </span>
+                        <strong className="text-neutral-800">{selectedOption.trainType || 'Superfast'}</strong>
+                      </div>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          IRCTC Quota
+                        </span>
+                        <strong className="text-neutral-800">{searchCriteria?.trainQuota || 'General'}</strong>
+                      </div>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Seat/Berth Status
+                        </span>
+                        <strong className="text-emerald-700">Confirmed Allocation</strong>
+                      </div>
+                    </>
+                  )}
+
+                  {service === 'bus' && (
+                    <>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Bus Coach
+                        </span>
+                        <strong className="text-neutral-800">{selectedOption.busType || 'Volvo Multi-Axle'}</strong>
+                      </div>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Boarding Lounge
+                        </span>
+                        <strong className="text-neutral-800">{selectedOption.originStationOrTerminal || 'Main Bay'}</strong>
+                      </div>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Dropping Terminal
+                        </span>
+                        <strong className="text-neutral-800">{selectedOption.destinationStationOrTerminal || 'City Terminus'}</strong>
+                      </div>
+                    </>
+                  )}
+
+                  {service === 'cab' && (
+                    <>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Model Category
+                        </span>
+                        <strong className="text-neutral-800">{selectedOption.subType || 'Sedan Prime'}</strong>
+                      </div>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Route Distance
+                        </span>
+                        <strong className="text-neutral-800">{selectedOption.estimatedDistanceKm || 150} km</strong>
+                      </div>
+                      <div className="p-3 bg-neutral-50 rounded-xl">
+                        <span className="text-[10px] uppercase text-neutral-400 block font-bold">
+                          Capacity & Luggage
+                        </span>
+                        <strong className="text-neutral-800">
+                          {selectedOption.capacity || '4 Seater'} • {selectedOption.luggage || '2 Bags'}
+                        </strong>
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                <div className="flex flex-col items-center justify-center border-y sm:border-y-0 sm:border-x border-neutral-200/80 py-2 sm:py-0 px-2 text-center">
-                  <Clock className="w-3.5 h-3.5 text-neutral-400 mb-0.5" />
-                  <span className="font-semibold text-neutral-700">{selectedOption.duration}</span>
-                  <span className="text-[10px] text-neutral-400">{selectedOption.stops === 0 ? 'Non-Stop Direct' : `${selectedOption.stops} Stop`}</span>
-                </div>
-
-                <div className="text-left sm:text-right">
-                  <span className="text-[10px] uppercase font-bold text-neutral-400 block">Arrival</span>
-                  <div className="text-lg font-bold text-neutral-900">{selectedOption.arrivalTime}</div>
-                  <div className="font-semibold text-neutral-800">{selectedOption.destinationCity} ({selectedOption.destinationCode})</div>
-                  <div className="text-[11px] text-neutral-400">{selectedOption.destinationStationOrTerminal}</div>
-                </div>
-              </div>
-
-              {/* Date & Terminal Info */}
-              <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-neutral-600">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-neutral-400" />
-                  <span>Date: <strong>{searchCriteria?.departureDate || 'Tomorrow'}</strong></span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-neutral-400" />
-                  <span>Boarding Gate / Bay: Assigned at terminal</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Passenger Information Card */}
-            <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-xs p-6 space-y-4">
-              <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
-                <User className="w-4 h-4 text-neutral-500" />
-                <span>Passenger & Seating Record</span>
-              </h4>
-
-              <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-100 space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500">Full Name</span>
-                  <strong className="text-neutral-900 text-sm">{passenger.fullName}</strong>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500">Contact Email</span>
-                  <span className="font-mono text-neutral-800">{passenger.email}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500">Mobile Phone</span>
-                  <span className="font-mono text-neutral-800">{passenger.phone}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-neutral-500">Age & Gender</span>
-                  <span className="text-neutral-800">{passenger.age} yrs • {passenger.gender?.toUpperCase()}</span>
-                </div>
-                {passenger.berthOrSeatPreference && (
-                  <div className="flex items-center justify-between pt-2 border-t border-neutral-200/70">
-                    <span className="text-neutral-500">Seating / Meal Preference</span>
-                    <span className="font-semibold text-neutral-800 bg-white px-2 py-0.5 rounded border border-neutral-200">
-                      {passenger.berthOrSeatPreference}
+                {/* Amenities List */}
+                {selectedOption.amenities && selectedOption.amenities.length > 0 && (
+                  <div className="pt-2">
+                    <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider block mb-2">
+                      Included Travel Amenities:
                     </span>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedOption.amenities.map((amenity, idx) => (
+                        <span
+                          key={idx}
+                          className="text-[11px] bg-neutral-100 text-neutral-700 px-2.5 py-1 rounded-lg font-medium flex items-center gap-1"
+                        >
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>{amenity}</span>
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Simulated Cancellation & Baggage Policy */}
-            <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-xs p-6 space-y-3">
-              <h4 className="text-sm font-bold text-neutral-900 flex items-center gap-2">
-                <Luggage className="w-4 h-4 text-neutral-500" />
-                <span>Simulated Journey Policies</span>
-              </h4>
-              <ul className="text-xs text-neutral-600 space-y-1.5 list-disc list-inside">
-                <li>Free cancellation simulated directly from <strong>My Bookings</strong> up to 4 hours prior.</li>
-                <li>Instant 100% simulated refund to simulated original payment method.</li>
-                <li>Standard baggage allowance of 15 kg check-in and 7 kg hand luggage included.</li>
-              </ul>
+            {/* Passenger Summary Card */}
+            <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-xs p-5 sm:p-6 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
+                <h3 className="text-sm font-bold text-neutral-900 uppercase tracking-wider flex items-center gap-2">
+                  <User className="w-4 h-4 text-neutral-600" />
+                  <span>Verified Passenger Roster ({passengersCount})</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => navigate(`/${routePrefix}/passengers`)}
+                  className="text-xs font-semibold text-neutral-600 hover:text-neutral-900 underline"
+                >
+                  Edit Passengers
+                </button>
+              </div>
+
+              {/* Primary Passenger */}
+              <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-200/70 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="font-bold text-sm text-neutral-900">{passenger.fullName}</div>
+                  <span className="bg-neutral-200 text-neutral-800 px-2 py-0.5 rounded text-[10px] font-bold uppercase">
+                    Primary Contact
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-neutral-600">
+                  <div>
+                    <span className="text-neutral-400">Email: </span>
+                    <span className="font-mono text-neutral-900">{passenger.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-400">Phone: </span>
+                    <span className="font-mono text-neutral-900">{passenger.phone}</span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-400">Demographics: </span>
+                    <span>
+                      {passenger.age} yrs • {passenger.gender?.toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-neutral-400">Seat/Berth Preference: </span>
+                    <span className="font-semibold text-neutral-800">
+                      {passenger.berthOrSeatPreference || 'Auto Assign'}
+                    </span>
+                  </div>
+                </div>
+
+                {passenger.passportNumber && (
+                  <div className="pt-2 border-t border-neutral-200 flex items-center gap-4 text-sky-900">
+                    <div>
+                      <span className="text-neutral-400">Passport: </span>
+                      <strong className="font-mono">{passenger.passportNumber}</strong>
+                    </div>
+                    <div>
+                      <span className="text-neutral-400">Country: </span>
+                      <span>{passenger.passportCountry}</span>
+                    </div>
+                  </div>
+                )}
+
+                {service === 'cab' && passenger.pickupAddress && (
+                  <div className="pt-2 border-t border-neutral-200 space-y-1 text-indigo-900">
+                    <div>
+                      <span className="text-neutral-400 font-bold">Pickup: </span>
+                      <span>{passenger.pickupAddress}</span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-400 font-bold">Drop: </span>
+                      <span>{passenger.dropAddress}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Additional Passengers if any */}
+              {additionalPassengers.map((pax, idx) => (
+                <div
+                  key={pax.id || idx}
+                  className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-200/70 text-xs flex items-center justify-between"
+                >
+                  <div>
+                    <span className="text-[10px] text-neutral-400 uppercase font-bold block">
+                      Passenger #{idx + 2}
+                    </span>
+                    <strong className="text-neutral-900">{pax.fullName}</strong>
+                    <span className="text-neutral-500 ml-2">
+                      ({pax.age} yrs, {pax.gender?.toUpperCase()})
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-neutral-600 bg-white px-2 py-1 rounded border border-neutral-200">
+                    {pax.berthOrSeatPreference || 'Standard Seat'}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Right Sidebar: Fare Breakdown & Confirmation CTA (4 cols) */}
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-md p-6 space-y-5">
-              <div className="border-b border-neutral-100 pb-3">
-                <h4 className="text-sm font-bold text-neutral-900">Fare Summary</h4>
-                <p className="text-[11px] text-neutral-400">Deterministic transparent pricing</p>
+          {/* Right Column: Fare Breakdown & Checkout Action (5 cols) */}
+          <div className="lg:col-span-5 space-y-5 lg:sticky lg:top-24">
+            <FareBreakdown
+              fareBreakdown={fareBreakdown}
+              service={service}
+              selectedOption={selectedOption}
+              selectedClass={selectedClass}
+            />
+
+            {/* Checkout Action CTA Card */}
+            <div className="bg-white rounded-3xl border border-neutral-200/90 shadow-sm p-5 sm:p-6 space-y-4">
+              <div className="text-xs text-neutral-600 space-y-2">
+                <div className="flex items-center gap-2 text-neutral-900 font-bold">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>VoyageHub Instant Booking Protection</span>
+                </div>
+                <p className="text-[11px] leading-relaxed text-neutral-500">
+                  By clicking Proceed to Checkout, your fare will be locked while you complete the
+                  simulated test payment.
+                </p>
               </div>
 
-              {/* Breakdown lines */}
-              <div className="space-y-2.5 text-xs text-neutral-600">
-                <div className="flex justify-between">
-                  <span>Base Fare ({fareBreakdown.passengerCount} {fareBreakdown.passengerCount === 1 ? 'Pax' : 'Pax'})</span>
-                  <span className="font-mono text-neutral-900">₹{fareBreakdown.subtotalBaseFare.toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Taxes & Terminal Fees</span>
-                  <span className="font-mono text-neutral-900">₹{fareBreakdown.taxesAndTerminalFees.toLocaleString('en-IN')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Service & Passenger Safety</span>
-                  <span className="font-mono text-neutral-900">₹{fareBreakdown.safetyOrServiceFee.toLocaleString('en-IN')}</span>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={handleProceedToCheckout}
+                className="w-full py-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer hover:shadow-lg"
+              >
+                <span>Proceed to Checkout</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
 
-              {/* Total */}
-              <div className="pt-3 border-t border-neutral-200 flex items-baseline justify-between">
-                <div>
-                  <span className="text-[11px] uppercase font-bold text-neutral-400 block">Total Amount</span>
-                  <span className="text-[10px] text-emerald-600 font-semibold">All taxes included</span>
-                </div>
-                <div className="text-2xl font-extrabold text-neutral-900">
-                  ₹{fareBreakdown.totalFare.toLocaleString('en-IN')}
-                </div>
-              </div>
-
-              {/* Error Alert */}
-              {submitError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-xs text-rose-800">
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                  <span>{submitError}</span>
-                </div>
-              )}
-
-              {/* Confirm & Book CTA */}
-              <div className="pt-2 space-y-2">
-                {isAuthenticated && user ? (
-                  <>
-                    <div className="text-[11px] text-neutral-600 bg-neutral-100 p-2.5 rounded-xl border border-neutral-200">
-                      <span>Traveler Account: </span>
-                      <strong className="text-neutral-900">{user.fullName}</strong>
-                    </div>
-
-                    <button
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={handleConfirmBooking}
-                      className="w-full py-3.5 px-4 rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Issuing Simulated Ticket...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-4 h-4 text-amber-400" />
-                          <span>Confirm & Issue Ticket</span>
-                        </>
-                      )}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-[11px] text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-200 leading-relaxed">
-                      Please sign in or register to link this booking with your personal travel account.
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleConfirmBooking}
-                      className="w-full py-3.5 px-4 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all"
-                    >
-                      <LogIn className="w-4 h-4" />
-                      <span>Sign In to Complete Booking</span>
-                    </button>
-                  </>
-                )}
-              </div>
-
-              <div className="text-center text-[10px] text-neutral-400">
-                Simulated booking • Real PostgreSQL persistence
+              <div className="text-center text-[10px] text-neutral-400 flex items-center justify-center gap-1">
+                <Lock className="w-3 h-3 text-neutral-400" />
+                <span>Simulated Sandbox Environment • TLS 1.3 Certified</span>
               </div>
             </div>
           </div>

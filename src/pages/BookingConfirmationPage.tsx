@@ -187,17 +187,38 @@ export const BookingConfirmationPage: React.FC = () => {
             </div>
 
             {/* Passenger & Allocation Metadata */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-100 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-100 text-xs">
               <div>
                 <span className="text-[10px] text-neutral-400 font-medium block">Passenger Name</span>
                 <span className="font-bold text-neutral-900 text-sm">{booking.primaryPassenger.fullName}</span>
                 <span className="text-[11px] text-neutral-500 block">{booking.primaryPassenger.email}</span>
+                {booking.additionalPassengers && booking.additionalPassengers.length > 0 && (
+                  <span className="text-[10px] text-neutral-400 block mt-1">
+                    + {booking.additionalPassengers.length} accompanying traveller(s)
+                  </span>
+                )}
               </div>
 
               <div>
                 <span className="text-[10px] text-neutral-400 font-medium block">Allocated Seat / Berth</span>
                 <span className="font-mono font-bold text-neutral-900 text-sm">{booking.seatOrBerthAllocated}</span>
-                <span className="text-[10px] text-emerald-700 block">Confirmed & Ready</span>
+                <span className="text-[10px] text-emerald-700 block font-semibold">Confirmed & Ready</span>
+              </div>
+
+              <div>
+                <span className="text-[10px] text-neutral-400 font-medium block">Payment Status</span>
+                <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-xs border border-emerald-200/60 mt-0.5">
+                  <Check className="w-3 h-3" />
+                  <span>{booking.paymentStatus === 'paid' ? 'Paid' : 'Paid (Simulated)'}</span>
+                </span>
+                <span className="text-[10px] text-neutral-500 block mt-1 capitalize font-medium">
+                  Via {booking.paymentMethod?.replace('_', ' ') || 'Card'}
+                </span>
+                {booking.paymentReference && (
+                  <span className="text-[9px] font-mono text-neutral-400 block truncate max-w-[140px]" title={booking.paymentReference}>
+                    {booking.paymentReference}
+                  </span>
+                )}
               </div>
 
               <div>
@@ -205,7 +226,7 @@ export const BookingConfirmationPage: React.FC = () => {
                 <span className="font-mono font-bold text-neutral-900 text-base">
                   ₹{booking.fareBreakdown.totalFare.toLocaleString('en-IN')}
                 </span>
-                <span className="text-[10px] text-neutral-400 block">Booking ID: {booking.id}</span>
+                <span className="text-[10px] text-neutral-400 block font-mono">ID: {booking.id}</span>
               </div>
             </div>
 
