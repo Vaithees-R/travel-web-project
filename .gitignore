@@ -14,11 +14,23 @@
 
 # misc
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env
+.env*.local
+.env.development
+.env.production
+.env.test
+
+# python & backend
+backend/venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
 
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+

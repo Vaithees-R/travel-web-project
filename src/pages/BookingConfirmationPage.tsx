@@ -1,21 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { CheckCircle2, Copy, Check, Printer, ArrowRight, Ticket, QrCode } from 'lucide-react';
+import { CheckCircle2, Copy, Check, Printer, ArrowRight, Ticket, QrCode, Loader2 } from 'lucide-react';
 import { CanonicalTransportType } from '../types/travel';
-import { BookingStorageService } from '../services/booking/bookingStorage';
+import { Booking } from '../types/booking';
 import { BookingStepIndicator } from '../components/booking/BookingStepIndicator';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { api } from '../services/api';
 
 export const BookingConfirmationPage: React.FC = () => {
   const { service: rawService, bookingId } = useParams<{ service: string; bookingId: string }>();
   const [copied, setCopied] = useState(false);
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const service: CanonicalTransportType = 
     rawService === 'flights' || rawService === 'flight' ? 'flight' :
     rawService === 'trains' || rawService === 'train' ? 'train' :
     rawService === 'buses' || rawService === 'bus' ? 'bus' : 'cab';
 
-  const booking = bookingId ? BookingStorageService.getBookingById(bookingId) : null;
+  useEffect(() => {
+    let isMounted = true;
+    if (!bookingId) {
+      setBooking(null);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    api.bookings
+      .get(bookingId)
+      .then((data) => {
+        if (isMounted) setBooking(data);
+      })
+      .catch((err) => {
+        console.warn('Booking confirmation fetch error', err);
+        if (isMounted) setBooking(null);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [bookingId]);
 
   const handleCopyRef = () => {
     if (booking?.bookingRef) {
@@ -29,6 +57,17 @@ export const BookingConfirmationPage: React.FC = () => {
     window.print();
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+        <div className="text-center space-y-3">
+          <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
+          <p className="text-xs text-neutral-500 font-medium">Generating your digital boarding pass & e-ticket...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!booking) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
@@ -36,7 +75,7 @@ export const BookingConfirmationPage: React.FC = () => {
           <Ticket className="w-12 h-12 text-neutral-400 mx-auto" />
           <h2 className="text-xl font-bold text-neutral-900">Booking Record Not Found</h2>
           <p className="text-xs text-neutral-500">
-            We couldn&apos;t locate this booking reference in your browser storage.
+            We couldn&apos;t locate this booking reference in the database.
           </p>
           <Link
             to="/bookings"

@@ -1,37 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, AlertTriangle, Printer, Trash2, User, Ticket, AlertCircle } from 'lucide-react';
-import { BookingStorageService } from '../services/booking/bookingStorage';
+import { ArrowLeft, CheckCircle, AlertTriangle, Printer, Trash2, User, Ticket, AlertCircle, Loader2 } from 'lucide-react';
 import { Booking } from '../types/booking';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { api } from '../services/api';
 
 export const BookingDetailPage: React.FC = () => {
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
 
-  const [booking, setBooking] = useState<Booking | null>(() => {
-    return bookingId ? BookingStorageService.getBookingById(bookingId) : null;
-  });
-
+  const [booking, setBooking] = useState<Booking | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
-  const handleCancelConfirm = () => {
+  const fetchBooking = useCallback(async () => {
+    if (!bookingId) {
+      setBooking(null);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const data = await api.bookings.get(bookingId);
+      setBooking(data);
+    } catch (err: any) {
+      console.warn('Booking not found or unauthorized', err);
+      setBooking(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [bookingId]);
+
+  useEffect(() => {
+    fetchBooking();
+  }, [fetchBooking]);
+
+  const handleCancelConfirm = async () => {
     if (!booking) return;
 
-    const success = BookingStorageService.cancelBooking(booking.id);
-    if (success) {
-      const refreshed = BookingStorageService.getBookingById(booking.id);
-      setBooking(refreshed);
+    setIsCancelling(true);
+    setCancelError(null);
+    try {
+      const updated = await api.bookings.cancel(booking.id);
+      setBooking(updated);
       setShowCancelModal(false);
       setCancelSuccess(true);
-      setTimeout(() => setCancelSuccess(false), 4000);
+      setTimeout(() => setCancelSuccess(false), 5000);
+    } catch (err: any) {
+      console.error('Failed to cancel booking via API', err);
+      setCancelError(err?.message || 'Unable to cancel booking at this time.');
+    } finally {
+      setIsCancelling(false);
     }
   };
 
   const handlePrint = () => {
     window.print();
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+        <div className="text-center space-y-3">
+          <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
+          <p className="text-xs text-neutral-500 font-medium">Verifying booking with PostgreSQL backend...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!booking) {
     return (
@@ -297,20 +337,35 @@ export const BookingDetailPage: React.FC = () => {
                 Your reservation status will be updated to <em>Cancelled</em>, and a simulated 100% refund of ₹{booking.fareBreakdown.totalFare.toLocaleString('en-IN')} will be credited.
               </p>
 
+              {cancelError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800">
+                  {cancelError}
+                </div>
+              )}
+
               <div className="flex items-center justify-end gap-3 pt-3">
                 <button
                   type="button"
+                  disabled={isCancelling}
                   onClick={() => setShowCancelModal(false)}
-                  className="px-4 py-2 rounded-xl border border-neutral-200 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
+                  className="px-4 py-2 rounded-xl border border-neutral-200 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 transition-colors"
                 >
                   Keep Booking
                 </button>
                 <button
                   type="button"
+                  disabled={isCancelling}
                   onClick={handleCancelConfirm}
-                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-sm transition-colors"
+                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
                 >
-                  Yes, Cancel Booking
+                  {isCancelling ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Cancelling...</span>
+                    </>
+                  ) : (
+                    <span>Yes, Cancel Booking</span>
+                  )}
                 </button>
               </div>
             </div>

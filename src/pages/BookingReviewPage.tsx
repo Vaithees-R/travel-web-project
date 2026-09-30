@@ -1,16 +1,19 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, ShieldAlert, Sparkles, Loader2, Calendar, Clock, MapPin, User, Luggage, AlertCircle } from 'lucide-react';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import { ArrowLeft, ShieldAlert, Sparkles, Loader2, Calendar, Clock, MapPin, User, Luggage, AlertCircle, LogIn } from 'lucide-react';
 import { CanonicalTransportType } from '../types/travel';
-import { Booking } from '../types/booking';
 import { BookingStorageService } from '../services/booking/bookingStorage';
 import { FareCalculatorService } from '../services/booking/fareCalculator';
 import { BookingStepIndicator } from '../components/booking/BookingStepIndicator';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { useAuth } from '../hooks/useAuth';
+import { api } from '../services/api';
 
 export const BookingReviewPage: React.FC = () => {
   const { service: rawService } = useParams<{ service: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, isAuthenticated } = useAuth();
 
   const service: CanonicalTransportType = 
     rawService === 'flights' || rawService === 'flight' ? 'flight' :
@@ -24,6 +27,7 @@ export const BookingReviewPage: React.FC = () => {
   const selectedClass = session?.selectedClass || 'Standard';
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // If session is incomplete, redirect gracefully
   if (!selectedOption || !passenger) {
@@ -59,45 +63,52 @@ export const BookingReviewPage: React.FC = () => {
   const passengersCount = searchCriteria?.passengers || 1;
   const fareBreakdown = FareCalculatorService.calculateFare(activeBaseFare, passengersCount, service);
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
+    if (!isAuthenticated || !user) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
+    setSubmitError(null);
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
       const bookingId = BookingStorageService.generateBookingId();
       const bookingRef = BookingStorageService.generateReference(service);
       const seatAllocation = BookingStorageService.generateSeatAllocation(service, selectedClass);
 
-      const newBooking: Booking = {
+      const payload = {
         id: bookingId,
         bookingRef,
         service,
-        status: 'upcoming',
-        createdAt: new Date().toISOString(),
         travelOption: selectedOption,
         searchCriteria: searchCriteria || {
           service,
           from: selectedOption.originCity,
           to: selectedOption.destinationCity,
           departureDate: 'Tomorrow, 08:30 AM',
-          tripType: 'oneway',
+          tripType: 'oneway' as const,
           passengers: passengersCount,
         },
         primaryPassenger: passenger,
         passengersCount,
         seatOrBerthAllocated: seatAllocation,
         fareBreakdown,
-        isSimulated: true,
       };
 
-      // Save to localStorage
-      BookingStorageService.saveBooking(newBooking);
+      const createdBooking = await api.bookings.create(payload);
 
-      // Clear session
+      // Clear session only after successful API persistence
       BookingStorageService.clearActiveSession();
 
       const routePrefix = service === 'flight' ? 'flights' : service === 'train' ? 'trains' : service === 'bus' ? 'buses' : 'cabs';
-      navigate(`/${routePrefix}/confirmation/${bookingId}`);
-    }, 450);
+      navigate(`/${routePrefix}/confirmation/${createdBooking.id}`);
+    } catch (err: any) {
+      console.error('Failed to persist booking to PostgreSQL API', err);
+      setSubmitError('Unable to confirm your booking. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -274,30 +285,62 @@ export const BookingReviewPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Error Alert */}
+              {submitError && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-xs text-rose-800">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{submitError}</span>
+                </div>
+              )}
+
               {/* Confirm & Book CTA */}
-              <div className="pt-2">
-                <button
-                  type="button"
-                  disabled={isSubmitting}
-                  onClick={handleConfirmBooking}
-                  className="w-full py-3.5 px-4 rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Issuing Simulated Ticket...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 text-amber-400" />
-                      <span>Confirm & Issue Ticket</span>
-                    </>
-                  )}
-                </button>
+              <div className="pt-2 space-y-2">
+                {isAuthenticated && user ? (
+                  <>
+                    <div className="text-[11px] text-neutral-600 bg-neutral-100 p-2.5 rounded-xl border border-neutral-200">
+                      <span>Traveler Account: </span>
+                      <strong className="text-neutral-900">{user.fullName}</strong>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={handleConfirmBooking}
+                      className="w-full py-3.5 px-4 rounded-2xl bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-600 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Issuing Simulated Ticket...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 text-amber-400" />
+                          <span>Confirm & Issue Ticket</span>
+                        </>
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-[11px] text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-200 leading-relaxed">
+                      Please sign in or register to link this booking with your personal travel account.
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleConfirmBooking}
+                      className="w-full py-3.5 px-4 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span>Sign In to Complete Booking</span>
+                    </button>
+                  </>
+                )}
               </div>
 
               <div className="text-center text-[10px] text-neutral-400">
-                Simulated booking • Instant local storage confirmation
+                Simulated booking • Real PostgreSQL persistence
               </div>
             </div>
           </div>

@@ -11,9 +11,11 @@ import {
   Pin, 
   PinOff,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { useAuth } from '../../hooks/useAuth';
 
 interface TravelMode {
   id: string;
@@ -32,6 +34,7 @@ const TRAVEL_MODES: TravelMode[] = [
 export const DynamicIslandNav: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
   
   // Interactive state
   const [isHovered, setIsHovered] = useState(false);
@@ -164,47 +167,89 @@ export const DynamicIslandNav: React.FC = () => {
           {/* Actions & Controls */}
           {isExpanded ? (
             <div className="hidden md:flex items-center gap-1 border-l border-neutral-800 pl-2">
-              <NavLink
-                to="/bookings"
-                className={cn(
-                  'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
-                  location.pathname === '/bookings' && 'text-emerald-400 bg-neutral-800'
-                )}
-                title="My Bookings & Itinerary"
-              >
-                <Ticket className="w-3.5 h-3.5" />
-                <span>Trips</span>
-              </NavLink>
+              {isAuthenticated ? (
+                <>
+                  <NavLink
+                    to="/bookings"
+                    className={cn(
+                      'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
+                      location.pathname.startsWith('/bookings') && 'text-emerald-400 bg-neutral-800'
+                    )}
+                    title="My Trips & Itinerary"
+                  >
+                    <Ticket className="w-3.5 h-3.5" />
+                    <span>My Trips</span>
+                  </NavLink>
 
-              <NavLink
-                to="/about"
-                className={cn(
-                  'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
-                  location.pathname === '/about' && 'text-emerald-400 bg-neutral-800'
-                )}
-                title="Editorial Story"
-              >
-                <span>About</span>
-              </NavLink>
+                  <NavLink
+                    to="/profile"
+                    className={cn(
+                      'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
+                      location.pathname === '/profile' && 'text-emerald-400 bg-neutral-800'
+                    )}
+                    title="Traveler Profile"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span className="max-w-[75px] truncate">{user?.fullName.split(' ')[0] || 'Profile'}</span>
+                  </NavLink>
 
-              <NavLink
-                to="/login"
-                className={cn(
-                  'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors',
-                  (location.pathname === '/login' || location.pathname === '/register') && 'text-emerald-400 bg-neutral-800'
-                )}
-                title="Account Login"
-              >
-                <User className="w-3.5 h-3.5" />
-                <span>Login</span>
-              </NavLink>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout();
+                      navigate('/');
+                    }}
+                    className="p-1.5 rounded-lg text-neutral-400 hover:text-rose-400 hover:bg-neutral-800 transition-colors"
+                    title="Sign Out"
+                    aria-label="Sign Out"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <NavLink
+                    to="/about"
+                    className={cn(
+                      'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
+                      location.pathname === '/about' && 'text-emerald-400 bg-neutral-800'
+                    )}
+                    title="About VoyageHub"
+                  >
+                    <span>About</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/login"
+                    className={cn(
+                      'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors',
+                      location.pathname === '/login' && 'text-emerald-400 bg-neutral-800'
+                    )}
+                    title="Account Login"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span>Login</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/register"
+                    className={cn(
+                      'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-neutral-900 bg-emerald-400 hover:bg-emerald-300 transition-colors shadow-xs',
+                      location.pathname === '/register' && 'ring-1 ring-white'
+                    )}
+                    title="Create Traveler Account"
+                  >
+                    <span>Sign Up</span>
+                  </NavLink>
+                </>
+              )}
 
               {/* Pin / Unpin button */}
               <button
                 type="button"
                 onClick={() => setIsPinned(!isPinned)}
                 className={cn(
-                  'p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400',
+                  'p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-400 ml-0.5',
                   isPinned && 'text-emerald-400 bg-neutral-800'
                 )}
                 title={isPinned ? 'Unpin navigation' : 'Pin navigation expanded'}
@@ -265,16 +310,41 @@ export const DynamicIslandNav: React.FC = () => {
               })}
             </div>
             <div className="border-t border-neutral-800 pt-3 flex items-center justify-between px-1 text-xs">
-              <NavLink to="/bookings" className="text-neutral-300 hover:text-white flex items-center gap-1.5 font-medium">
-                <Ticket className="w-3.5 h-3.5" />
-                <span>My Bookings</span>
-              </NavLink>
-              <NavLink to="/about" className="text-neutral-300 hover:text-white font-medium">
-                About
-              </NavLink>
-              <NavLink to="/login" className="text-emerald-400 font-semibold">
-                Sign In
-              </NavLink>
+              {isAuthenticated ? (
+                <>
+                  <NavLink to="/bookings" className="text-neutral-300 hover:text-white flex items-center gap-1.5 font-medium">
+                    <Ticket className="w-3.5 h-3.5" />
+                    <span>My Trips</span>
+                  </NavLink>
+                  <NavLink to="/profile" className="text-neutral-300 hover:text-white flex items-center gap-1.5 font-medium">
+                    <User className="w-3.5 h-3.5" />
+                    <span>Profile</span>
+                  </NavLink>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      logout();
+                      navigate('/');
+                    }}
+                    className="text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    <span>Sign Out</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <NavLink to="/about" className="text-neutral-300 hover:text-white font-medium">
+                    About
+                  </NavLink>
+                  <NavLink to="/login" className="text-neutral-200 hover:text-white font-medium">
+                    Sign In
+                  </NavLink>
+                  <NavLink to="/register" className="text-emerald-400 font-semibold">
+                    Sign Up
+                  </NavLink>
+                </>
+              )}
             </div>
           </div>
         </div>

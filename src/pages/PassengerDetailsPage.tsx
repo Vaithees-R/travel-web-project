@@ -6,10 +6,12 @@ import { Passenger } from '../types/booking';
 import { BookingStorageService } from '../services/booking/bookingStorage';
 import { BookingStepIndicator } from '../components/booking/BookingStepIndicator';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { useAuth } from '../hooks/useAuth';
 
 export const PassengerDetailsPage: React.FC = () => {
   const { service: rawService } = useParams<{ service: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const service: CanonicalTransportType = 
     rawService === 'flights' || rawService === 'flight' ? 'flight' :
@@ -21,10 +23,10 @@ export const PassengerDetailsPage: React.FC = () => {
   const searchCriteria = session?.searchCriteria;
   const selectedClass = session?.selectedClass || selectedOption?.selectedClass || 'Standard';
 
-  // Form states
-  const [fullName, setFullName] = useState(session?.passenger?.fullName || '');
-  const [email, setEmail] = useState(session?.passenger?.email || '');
-  const [phone, setPhone] = useState(session?.passenger?.phone || '');
+  // Form states (prefilled from active session or logged-in user profile)
+  const [fullName, setFullName] = useState(session?.passenger?.fullName || user?.fullName || '');
+  const [email, setEmail] = useState(session?.passenger?.email || user?.email || '');
+  const [phone, setPhone] = useState(session?.passenger?.phone || user?.phone || '');
   const [gender, setGender] = useState<'male' | 'female' | 'other'>(session?.passenger?.gender || 'male');
   const [age, setAge] = useState<string>(session?.passenger?.age ? String(session.passenger.age) : '28');
   const [preference, setPreference] = useState(session?.passenger?.berthOrSeatPreference || 'No Preference');

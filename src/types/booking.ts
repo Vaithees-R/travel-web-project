@@ -73,6 +73,7 @@ export type BookingStatus = 'upcoming' | 'completed' | 'cancelled';
 
 export interface Booking {
   id: string; // e.g. "VH-2026-8F42K"
+  userId: string; // Links booking directly to user account (e.g. "usr_101")
   bookingRef: string; // e.g. "PNR 9DF4X2", "PNR 432-8910482", "VOY-BUS-7721", "VOY-CAB-3819"
   service: CanonicalTransportType;
   status: BookingStatus;

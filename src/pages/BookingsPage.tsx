@@ -1,22 +1,44 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Ticket, Search, ArrowRight, Sparkles } from 'lucide-react';
-import { BookingStorageService } from '../services/booking/bookingStorage';
+import { Ticket, Search, ArrowRight, Sparkles, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { Booking } from '../types/booking';
 import { BookingItineraryCard, BookingItineraryItem } from '../components/travel/BookingItineraryCard';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { useAuth } from '../hooks/useAuth';
+import { api } from '../services/api';
 
 export const BookingsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed' | 'cancelled'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Initial load from localStorage
+  const fetchBookings = useCallback(async () => {
+    if (!user) {
+      setBookings([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await api.bookings.list();
+      setBookings(data);
+    } catch (err: any) {
+      console.error('Failed to load user bookings', err);
+      setError(err?.message || 'Unable to retrieve your bookings. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
   useEffect(() => {
-    const stored = BookingStorageService.getBookings();
-    setBookings(stored);
-  }, []);
+    fetchBookings();
+  }, [fetchBookings]);
 
   // Map Booking to BookingItineraryItem for the card component
   const itineraryItems: BookingItineraryItem[] = bookings.map((b) => ({
@@ -61,9 +83,11 @@ export const BookingsPage: React.FC = () => {
     navigate(`/bookings/${bookingId}`);
   };
 
-  const handleSeedSamples = () => {
+  const handleSeedSamples = async () => {
+    if (!user) return;
     const sample1: Booking = {
       id: 'VH-2026-9DF4X',
+      userId: user.id,
       bookingRef: 'PNR 9DF4X2',
       service: 'flight',
       status: 'upcoming',
@@ -121,6 +145,7 @@ export const BookingsPage: React.FC = () => {
 
     const sample2: Booking = {
       id: 'VH-2026-43289',
+      userId: user.id,
       bookingRef: 'PNR 432-8910482',
       service: 'train',
       status: 'upcoming',
@@ -176,10 +201,43 @@ export const BookingsPage: React.FC = () => {
       isSimulated: true,
     };
 
-    BookingStorageService.saveBooking(sample1);
-    BookingStorageService.saveBooking(sample2);
-    setBookings(BookingStorageService.getBookings());
+    try {
+      setIsLoading(true);
+      await api.bookings.create(sample1);
+      await api.bookings.create(sample2);
+      await fetchBookings();
+    } catch (err: any) {
+      console.error('Failed to seed sample bookings to API', err);
+      setError('Could not populate demonstration itineraries.');
+      setIsLoading(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col items-center justify-center space-y-4">
+        <Loader2 className="w-10 h-10 text-emerald-600 animate-spin" />
+        <p className="text-xs sm:text-sm text-neutral-500 font-medium">Loading your travel itineraries from PostgreSQL...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-md mx-auto my-16 p-6 bg-white border border-rose-200 rounded-3xl text-center space-y-4 shadow-sm">
+        <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
+        <h3 className="text-base font-bold text-neutral-900">Failed to Load Bookings</h3>
+        <p className="text-xs text-neutral-500">{error}</p>
+        <button
+          onClick={fetchBookings}
+          className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+        >
+          <RefreshCw className="w-3.5 h-3.5" />
+          <span>Try Again</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 pb-16">
@@ -208,7 +266,7 @@ export const BookingsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* When no bookings exist at all, render realistic empty state */}
+      {/* When no bookings exist for this user, render realistic empty state */}
       {bookings.length === 0 ? (
         <div className="bg-white rounded-3xl border border-neutral-200 p-8 sm:p-12 text-center space-y-8 shadow-xs">
           <div className="max-w-md mx-auto space-y-3">
@@ -216,10 +274,10 @@ export const BookingsPage: React.FC = () => {
               <Ticket className="w-8 h-8" />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-neutral-900">
-              No Bookings Found Yet
+              You haven&apos;t booked a journey yet.
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
-              You don&apos;t have any active or previous travel reservations. Explore our travel services to book flights, trains, buses, or cabs with instant simulated confirmations.
+              When you book flights, trains, coaches, or cabs in VoyageHub, your personal simulated e-tickets and itineraries will appear here.
             </p>
           </div>
 
@@ -227,58 +285,70 @@ export const BookingsPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto pt-2">
             <Link
               to="/flights"
-              className="p-5 rounded-2xl border border-neutral-200 hover:border-sky-400 hover:shadow-md transition-all group text-left bg-neutral-50/50 hover:bg-sky-50/30"
+              className="p-5 rounded-2xl border border-neutral-200 hover:border-sky-400 hover:shadow-md transition-all group text-left bg-neutral-50/50 hover:bg-sky-50/30 flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-3">
-                <TransportBadge type="flight" size="sm" variant="subtle" />
-                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-sky-600 group-hover:translate-x-1 transition-all" />
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <TransportBadge type="flight" size="sm" variant="subtle" />
+                  <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-sky-600 group-hover:translate-x-1 transition-all" />
+                </div>
+                <h3 className="text-sm font-bold text-neutral-900">Explore Flights</h3>
+                <p className="text-[11px] text-neutral-500 mt-1">
+                  Domestic & international air corridors with seat allocation.
+                </p>
               </div>
-              <h3 className="text-sm font-bold text-neutral-900">Flights</h3>
-              <p className="text-[11px] text-neutral-500 mt-1">
-                Domestic & international air tickets with instant seat allocation.
-              </p>
+              <div className="pt-3 text-[11px] font-semibold text-sky-700">Book Air Ticket →</div>
             </Link>
 
             <Link
               to="/trains"
-              className="p-5 rounded-2xl border border-neutral-200 hover:border-amber-400 hover:shadow-md transition-all group text-left bg-neutral-50/50 hover:bg-amber-50/30"
+              className="p-5 rounded-2xl border border-neutral-200 hover:border-amber-400 hover:shadow-md transition-all group text-left bg-neutral-50/50 hover:bg-amber-50/30 flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-3">
-                <TransportBadge type="train" size="sm" variant="subtle" />
-                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <TransportBadge type="train" size="sm" variant="subtle" />
+                  <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
+                </div>
+                <h3 className="text-sm font-bold text-neutral-900">Explore Trains</h3>
+                <p className="text-[11px] text-neutral-500 mt-1">
+                  Vande Bharat, Rajdhani & express berths with live PNR tracking.
+                </p>
               </div>
-              <h3 className="text-sm font-bold text-neutral-900">Trains</h3>
-              <p className="text-[11px] text-neutral-500 mt-1">
-                Vande Bharat, Rajdhani & express berths with live PNR tracking.
-              </p>
+              <div className="pt-3 text-[11px] font-semibold text-amber-800">Book Train Berth →</div>
             </Link>
 
             <Link
               to="/buses"
-              className="p-5 rounded-2xl border border-neutral-200 hover:border-emerald-400 hover:shadow-md transition-all group text-left bg-neutral-50/50 hover:bg-emerald-50/30"
+              className="p-5 rounded-2xl border border-neutral-200 hover:border-emerald-400 hover:shadow-md transition-all group text-left bg-neutral-50/50 hover:bg-emerald-50/30 flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-3">
-                <TransportBadge type="bus" size="sm" variant="subtle" />
-                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <TransportBadge type="bus" size="sm" variant="subtle" />
+                  <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+                </div>
+                <h3 className="text-sm font-bold text-neutral-900">Explore Buses</h3>
+                <p className="text-[11px] text-neutral-500 mt-1">
+                  Volvo 9600 multi-axle luxury sleepers & highway express coaches.
+                </p>
               </div>
-              <h3 className="text-sm font-bold text-neutral-900">Buses</h3>
-              <p className="text-[11px] text-neutral-500 mt-1">
-                Volvo 9600 multi-axle luxury sleepers & highway express coaches.
-              </p>
+              <div className="pt-3 text-[11px] font-semibold text-emerald-700">Book Bus Berth →</div>
             </Link>
 
             <Link
               to="/cabs"
-              className="p-5 rounded-2xl border border-neutral-200 hover:border-indigo-400 hover:shadow-md transition-all group text-left bg-neutral-50/50 hover:bg-indigo-50/30"
+              className="p-5 rounded-2xl border border-neutral-200 hover:border-indigo-400 hover:shadow-md transition-all group text-left bg-neutral-50/50 hover:bg-indigo-50/30 flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-3">
-                <TransportBadge type="cab" size="sm" variant="subtle" />
-                <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <TransportBadge type="cab" size="sm" variant="subtle" />
+                  <ArrowRight className="w-4 h-4 text-neutral-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+                </div>
+                <h3 className="text-sm font-bold text-neutral-900">Explore Cabs</h3>
+                <p className="text-[11px] text-neutral-500 mt-1">
+                  Airport transfers, outstation sedans, and executive chauffeurs.
+                </p>
               </div>
-              <h3 className="text-sm font-bold text-neutral-900">Cabs</h3>
-              <p className="text-[11px] text-neutral-500 mt-1">
-                Airport transfers, outstation sedans, and executive chauffeurs.
-              </p>
+              <div className="pt-3 text-[11px] font-semibold text-indigo-700">Book Chauffeur →</div>
             </Link>
           </div>
 

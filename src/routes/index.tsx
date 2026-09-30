@@ -15,7 +15,9 @@ import { BookingConfirmationPage } from '../pages/BookingConfirmationPage';
 import { AboutPage } from '../pages/AboutPage';
 import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
+import { ProfilePage } from '../pages/ProfilePage';
 import { NotFoundPage } from '../pages/NotFoundPage';
+import { ProtectedRoute } from '../components/auth/ProtectedRoute';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -34,9 +36,31 @@ export const AppRoutes: React.FC = () => {
         <Route path=":service/review" element={<BookingReviewPage />} />
         <Route path=":service/confirmation/:bookingId" element={<BookingConfirmationPage />} />
 
-        {/* Itinerary Center & Detailed View */}
-        <Route path="bookings" element={<BookingsPage />} />
-        <Route path="bookings/:bookingId" element={<BookingDetailPage />} />
+        {/* Protected Travel Account & Itinerary Center */}
+        <Route
+          path="bookings"
+          element={
+            <ProtectedRoute>
+              <BookingsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="bookings/:bookingId"
+          element={
+            <ProtectedRoute>
+              <BookingDetailPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Informational & Auth Pages */}
         <Route path="about" element={<AboutPage />} />

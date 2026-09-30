@@ -13,14 +13,18 @@ export interface BookingSession {
 
 export const BookingStorageService = {
   /**
-   * Retrieve all locally stored user bookings
+   * Retrieve stored bookings, optionally scoped to a specific user ID
    */
-  getBookings: (): Booking[] => {
+  getBookings: (userId?: string): Booking[] => {
     try {
       const data = localStorage.getItem(BOOKINGS_KEY);
       if (!data) return [];
       const parsed = JSON.parse(data);
-      return Array.isArray(parsed) ? parsed : [];
+      const list: Booking[] = Array.isArray(parsed) ? parsed : [];
+      if (userId) {
+        return list.filter((b) => b.userId === userId);
+      }
+      return list;
     } catch (e) {
       console.error('Failed to read bookings from localStorage', e);
       return [];
@@ -28,10 +32,17 @@ export const BookingStorageService = {
   },
 
   /**
-   * Retrieve a specific booking by ID or Reference
+   * Retrieve user-specific bookings
    */
-  getBookingById: (id: string): Booking | null => {
-    const bookings = BookingStorageService.getBookings();
+  getUserBookings: (userId: string): Booking[] => {
+    return BookingStorageService.getBookings(userId);
+  },
+
+  /**
+   * Retrieve a specific booking by ID or Reference (optionally scoped to user)
+   */
+  getBookingById: (id: string, userId?: string): Booking | null => {
+    const bookings = BookingStorageService.getBookings(userId);
     return bookings.find((b) => b.id === id || b.bookingRef === id) || null;
   },
 
@@ -40,7 +51,7 @@ export const BookingStorageService = {
    */
   saveBooking: (booking: Booking): Booking => {
     try {
-      const current = BookingStorageService.getBookings();
+      const current = BookingStorageService.getBookings(); // all bookings
       // Prepend so newest appears first
       const updated = [booking, ...current.filter((b) => b.id !== booking.id)];
       localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updated));
@@ -54,10 +65,15 @@ export const BookingStorageService = {
   /**
    * Cancel an existing booking
    */
-  cancelBooking: (id: string): boolean => {
+  cancelBooking: (id: string, userId?: string): boolean => {
     try {
       const current = BookingStorageService.getBookings();
-      const updated = current.map((b) => (b.id === id ? { ...b, status: 'cancelled' as const } : b));
+      const updated = current.map((b) => {
+        if (b.id === id && (!userId || b.userId === userId)) {
+          return { ...b, status: 'cancelled' as const };
+        }
+        return b;
+      });
       localStorage.setItem(BOOKINGS_KEY, JSON.stringify(updated));
       return true;
     } catch (e) {
