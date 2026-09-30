@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeftRight, Calendar, Users, MapPin, Search, Train, Bus } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Calendar,
+  Users,
+  MapPin,
+  Search,
+  Train,
+  Bus,
+  AlertCircle,
+  Sparkles,
+} from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { normalizeLocationQuery } from '../../services/travel/locations';
 
 export type SearchMode = 'flights' | 'trains' | 'buses' | 'cabs';
 
@@ -25,51 +36,160 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
   // Flight specifics
   const [tripType, setTripType] = useState<'oneway' | 'roundtrip'>('oneway');
   const [cabinClass, setCabinClass] = useState('Economy');
-  
+
   // Cab specifics
   const [cabTripType, setCabTripType] = useState<'oneway' | 'roundtrip' | 'hourly'>('oneway');
 
   // Shared state
   const [from, setFrom] = useState(
     initialFrom ||
-      (mode === 'flights' ? 'Delhi (DEL)' : mode === 'trains' ? 'New Delhi (NDLS)' : mode === 'buses' ? 'Bengaluru (Majestic)' : 'Mumbai Airport (BOM)')
+      (mode === 'flights'
+        ? 'Delhi (DEL)'
+        : mode === 'trains'
+        ? 'New Delhi (NDLS)'
+        : mode === 'buses'
+        ? 'Bengaluru'
+        : 'Mumbai')
   );
   const [to, setTo] = useState(
     initialTo ||
-      (mode === 'flights' ? 'Mumbai (BOM)' : mode === 'trains' ? 'Varanasi Jn (BSB)' : mode === 'buses' ? 'Chennai (CMBT)' : 'Pune City')
+      (mode === 'flights'
+        ? 'Mumbai (BOM)'
+        : mode === 'trains'
+        ? 'Varanasi (BSB)'
+        : mode === 'buses'
+        ? 'Chennai'
+        : 'Pune')
   );
   const [travelDate, setTravelDate] = useState('Tomorrow, 08:30 AM');
+  const [returnDate, setReturnDate] = useState('Next Week, 06:00 PM');
   const [travelers, setTravelers] = useState('1 Traveler');
   const [trainQuota, setTrainQuota] = useState('General');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleSwap = () => {
     const temp = from;
     setFrom(to);
     setTo(temp);
+    setValidationError(null);
+  };
+
+  const validateInputs = (): boolean => {
+    if (!from.trim()) {
+      setValidationError('Please enter a departure location.');
+      return false;
+    }
+    if (!to.trim()) {
+      setValidationError('Please enter a destination location.');
+      return false;
+    }
+
+    const normFrom = normalizeLocationQuery(from);
+    const normTo = normalizeLocationQuery(to);
+
+    const fromKey = (normFrom.code || normFrom.city).toLowerCase();
+    const toKey = (normTo.code || normTo.city).toLowerCase();
+
+    if (fromKey === toKey) {
+      setValidationError('Origin and destination cannot be identical. Please choose distinct locations.');
+      return false;
+    }
+
+    setValidationError(null);
+    return true;
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validateInputs()) {
+      return;
+    }
+
+    const effectiveTripType = mode === 'cabs' ? cabTripType : tripType;
+
     if (onSearch) {
       onSearch({
         mode,
         from,
         to,
         travelDate,
-        tripType: mode === 'cabs' ? cabTripType : tripType,
+        returnDate: tripType === 'roundtrip' ? returnDate : '',
+        tripType: effectiveTripType,
       });
     } else {
       const params = new URLSearchParams();
       params.set('from', from);
       params.set('to', to);
       params.set('date', travelDate);
-      params.set('passengers', '1');
+      if (tripType === 'roundtrip' && mode === 'flights') {
+        params.set('returnDate', returnDate);
+      }
+      params.set('passengers', travelers.match(/\d+/)?.[0] || '1');
       if (mode === 'flights') params.set('class', cabinClass);
       if (mode === 'cabs') params.set('tripType', cabTripType);
       if (mode === 'trains') params.set('quota', trainQuota);
       navigate(`/${mode}/results?${params.toString()}`);
     }
   };
+
+  // Preset location suggestions for datalists
+  const flightSuggestions = [
+    'Delhi (DEL)',
+    'Mumbai (BOM)',
+    'Bengaluru (BLR)',
+    'Chennai (MAA)',
+    'Hyderabad (HYD)',
+    'Goa (GOI)',
+    'Dubai (DXB)',
+    'Singapore (SIN)',
+    'London (LHR)',
+    'Bangkok (BKK)',
+  ];
+
+  const trainSuggestions = [
+    'New Delhi (NDLS)',
+    'Mumbai Central (MMCT)',
+    'Varanasi (BSB)',
+    'Chennai (MAS)',
+    'Bengaluru (SBC)',
+    'Bhopal (RKMP)',
+    'Kolkata (SDAH)',
+    'Ahmedabad (ADI)',
+    'Hyderabad (HYB)',
+  ];
+
+  const busSuggestions = [
+    'Bengaluru',
+    'Chennai',
+    'Mumbai',
+    'Goa',
+    'Delhi',
+    'Chandigarh',
+    'Hyderabad',
+    'Madurai',
+    'Mysuru',
+  ];
+
+  const cabSuggestions = [
+    'Mumbai',
+    'Pune',
+    'Bengaluru',
+    'Mysuru',
+    'Delhi',
+    'Agra',
+    'Chennai',
+    'Pondicherry',
+  ];
+
+  const suggestions =
+    mode === 'flights'
+      ? flightSuggestions
+      : mode === 'trains'
+      ? trainSuggestions
+      : mode === 'buses'
+      ? busSuggestions
+      : cabSuggestions;
 
   return (
     <div
@@ -78,6 +198,13 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
         className
       )}
     >
+      {/* Hidden Datalist for Autocomplete Suggestions */}
+      <datalist id={`location-suggestions-${mode}`}>
+        {suggestions.map((s) => (
+          <option key={s} value={s} />
+        ))}
+      </datalist>
+
       <form onSubmit={handleSearchSubmit} className="space-y-4">
         {/* Top Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-neutral-100">
@@ -89,7 +216,9 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
                   onClick={() => setTripType('oneway')}
                   className={cn(
                     'px-3 py-1 rounded-lg transition-all',
-                    tripType === 'oneway' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-neutral-800'
+                    tripType === 'oneway'
+                      ? 'bg-white text-neutral-900 shadow-xs'
+                      : 'text-neutral-500 hover:text-neutral-800'
                   )}
                 >
                   One Way
@@ -99,7 +228,9 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
                   onClick={() => setTripType('roundtrip')}
                   className={cn(
                     'px-3 py-1 rounded-lg transition-all',
-                    tripType === 'roundtrip' ? 'bg-white text-neutral-900 shadow-xs' : 'text-neutral-500 hover:text-neutral-800'
+                    tripType === 'roundtrip'
+                      ? 'bg-white text-neutral-900 shadow-xs'
+                      : 'text-neutral-500 hover:text-neutral-800'
                   )}
                 >
                   Round Trip
@@ -132,7 +263,9 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
                     onClick={() => setTrainQuota(q)}
                     className={cn(
                       'px-2.5 py-1 rounded-lg transition-all text-[11px]',
-                      trainQuota === q ? 'bg-white text-stone-900 shadow-xs font-semibold' : 'text-stone-500 hover:text-stone-800'
+                      trainQuota === q
+                        ? 'bg-white text-stone-900 shadow-xs font-semibold'
+                        : 'text-stone-500 hover:text-stone-800'
                     )}
                   >
                     {q}
@@ -162,7 +295,9 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
                   onClick={() => setCabTripType('oneway')}
                   className={cn(
                     'px-3 py-1 rounded-lg transition-all',
-                    cabTripType === 'oneway' ? 'bg-white text-indigo-900 shadow-xs font-semibold' : 'text-indigo-600 hover:text-indigo-950'
+                    cabTripType === 'oneway'
+                      ? 'bg-white text-indigo-900 shadow-xs font-semibold'
+                      : 'text-indigo-600 hover:text-indigo-950'
                   )}
                 >
                   One Way
@@ -172,7 +307,9 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
                   onClick={() => setCabTripType('roundtrip')}
                   className={cn(
                     'px-3 py-1 rounded-lg transition-all',
-                    cabTripType === 'roundtrip' ? 'bg-white text-indigo-900 shadow-xs font-semibold' : 'text-indigo-600 hover:text-indigo-950'
+                    cabTripType === 'roundtrip'
+                      ? 'bg-white text-indigo-900 shadow-xs font-semibold'
+                      : 'text-indigo-600 hover:text-indigo-950'
                   )}
                 >
                   Round Trip
@@ -182,7 +319,9 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
                   onClick={() => setCabTripType('hourly')}
                   className={cn(
                     'px-3 py-1 rounded-lg transition-all',
-                    cabTripType === 'hourly' ? 'bg-white text-indigo-900 shadow-xs font-semibold' : 'text-indigo-600 hover:text-indigo-950'
+                    cabTripType === 'hourly'
+                      ? 'bg-white text-indigo-900 shadow-xs font-semibold'
+                      : 'text-indigo-600 hover:text-indigo-950'
                   )}
                 >
                   City Hourly
@@ -191,10 +330,19 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
             </div>
           )}
 
-          <div className="text-xs text-neutral-400 font-medium ml-auto">
-            Direct Instant Confirmation
+          <div className="text-xs text-neutral-400 font-medium ml-auto flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-amber-500" />
+            <span>Direct Instant Confirmation</span>
           </div>
         </div>
+
+        {/* Validation Warning Alert */}
+        {validationError && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-3 flex items-center gap-2.5 text-xs text-red-700 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+            <span className="font-semibold">{validationError}</span>
+          </div>
+        )}
 
         {/* Input Fields Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
@@ -209,8 +357,12 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
                 <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                 <input
                   type="text"
+                  list={`location-suggestions-${mode}`}
                   value={from}
-                  onChange={(e) => setFrom(e.target.value)}
+                  onChange={(e) => {
+                    setFrom(e.target.value);
+                    if (validationError) setValidationError(null);
+                  }}
                   className="w-full text-xs sm:text-sm font-semibold text-neutral-900 bg-transparent focus:outline-none"
                   placeholder="Enter origin"
                 />
@@ -236,8 +388,12 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
                 <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                 <input
                   type="text"
+                  list={`location-suggestions-${mode}`}
                   value={to}
-                  onChange={(e) => setTo(e.target.value)}
+                  onChange={(e) => {
+                    setTo(e.target.value);
+                    if (validationError) setValidationError(null);
+                  }}
                   className="w-full text-xs sm:text-sm font-semibold text-neutral-900 bg-transparent focus:outline-none"
                   placeholder="Enter destination"
                 />
@@ -245,10 +401,19 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
             </div>
           </div>
 
-          {/* Date Picker */}
-          <div className="md:col-span-3 p-3 bg-neutral-50 rounded-2xl border border-neutral-200/80">
+          {/* Date Picker (Departure & optional Return) */}
+          <div
+            className={cn(
+              tripType === 'roundtrip' && mode === 'flights' ? 'md:col-span-3' : 'md:col-span-3',
+              'p-3 bg-neutral-50 rounded-2xl border border-neutral-200/80'
+            )}
+          >
             <label className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-0.5">
-              {mode === 'cabs' ? 'Pickup Date & Time' : 'Travel Date'}
+              {mode === 'cabs'
+                ? 'Pickup Date & Time'
+                : tripType === 'roundtrip'
+                ? 'Departure Date'
+                : 'Travel Date'}
             </label>
             <div className="flex items-center gap-2">
               <Calendar className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
@@ -281,7 +446,7 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
             <button
               type="submit"
               className={cn(
-                'h-[58px] px-5 rounded-2xl text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shrink-0',
+                'h-[58px] px-5 rounded-2xl text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shrink-0 cursor-pointer',
                 mode === 'flights' && 'bg-sky-600 hover:bg-sky-700 shadow-sky-600/20',
                 mode === 'trains' && 'bg-amber-700 hover:bg-amber-800 shadow-amber-700/20',
                 mode === 'buses' && 'bg-emerald-700 hover:bg-emerald-800 shadow-emerald-700/20',
@@ -293,6 +458,29 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Optional Roundtrip Return Date Row for Flights */}
+        {mode === 'flights' && tripType === 'roundtrip' && (
+          <div className="pt-2 border-t border-neutral-100 flex items-center gap-3">
+            <div className="max-w-xs flex-1 p-2.5 bg-neutral-50 rounded-2xl border border-neutral-200/80">
+              <label className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-0.5">
+                Return Date & Time
+              </label>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                <input
+                  type="text"
+                  value={returnDate}
+                  onChange={(e) => setReturnDate(e.target.value)}
+                  className="w-full text-xs sm:text-sm font-semibold text-neutral-900 bg-transparent focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="text-xs text-neutral-500">
+              Round trip search will reserve connecting return inventory.
+            </div>
+          </div>
+        )}
       </form>
     </div>
   );

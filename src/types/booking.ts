@@ -12,10 +12,11 @@ export interface SearchCriteria {
   returnDate?: string;
   tripType: TripType;
   passengers: number;
-  cabinClass?: 'Economy' | 'Premium Economy' | 'Business';
+  cabinClass?: 'Economy' | 'Premium Economy' | 'Business' | 'All';
   trainQuota?: 'General' | 'Tatkal' | 'Ladies' | 'Senior';
   trainClass?: '1A' | '2A' | '3A' | 'SL' | 'CC' | 'EC' | 'All';
-  busType?: 'All' | 'Sleeper' | 'Semi-Sleeper' | 'Electric';
+  busType?: 'All' | 'Sleeper' | 'Semi-Sleeper' | 'Electric' | 'AC Seater';
+  cabCategory?: 'All' | 'Mini' | 'Sedan Prime' | 'Outstation SUV' | 'Green EV' | 'Executive';
   pickupTime?: string;
 }
 
@@ -47,6 +48,45 @@ export interface TravelOption {
   capacity?: string; // "4 Passengers"
   luggage?: string; // "2 Bags"
   selectedClass?: string; // Currently chosen sub-class or berth class
+
+  // Phase 6 enriched fields
+  baggage?: string; // "Cabin: 7 kg, Check-in: 15 kg"
+  isRefundable?: boolean;
+  trainType?: string; // "Vande Bharat", "Rajdhani", "Shatabdi", "Tejas", "Duronto", "Express"
+  boardingPoint?: string;
+  droppingPoint?: string;
+  seatType?: string; // "Sleeper", "Semi-Sleeper", "Chair Car"
+  estimatedDistanceKm?: number;
+  ratePerKm?: number;
+  isInternational?: boolean;
+}
+
+export interface FlightOption extends TravelOption {
+  service: 'flight';
+  cabinClasses: Array<{ className: string; fare: number; available: number }>;
+  baggage: string;
+  isRefundable: boolean;
+}
+
+export interface TrainOption extends TravelOption {
+  service: 'train';
+  trainClasses: Array<{ className: string; fare: number; available: number; status: 'Available' | 'RAC' | 'WL' }>;
+  trainType: string;
+}
+
+export interface BusOption extends TravelOption {
+  service: 'bus';
+  busType: string;
+  boardingPoint: string;
+  droppingPoint: string;
+}
+
+export interface CabOption extends TravelOption {
+  service: 'cab';
+  cabCategory: string;
+  estimatedDistanceKm: number;
+  ratePerKm: number;
+  tripType: TripType;
 }
 
 export interface Passenger {
@@ -98,5 +138,7 @@ export interface FilterState {
   trainClasses?: string[];
   busTypes?: string[];
   cabCategories?: string[];
+  trainTypes?: string[];
   departureTimeWindow?: 'all' | 'morning' | 'afternoon' | 'evening' | 'night';
+  isRefundableOnly?: boolean;
 }
