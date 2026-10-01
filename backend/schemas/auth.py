@@ -1,8 +1,10 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from backend.schemas.user import UserRead
 
 class RegisterRequest(BaseModel):
-    full_name: str = Field(..., min_length=2, max_length=255, description="Full legal name of the traveler")
+    model_config = ConfigDict(populate_by_name=True)
+
+    full_name: str = Field(..., alias="fullName", min_length=2, max_length=255, description="Full legal name of the traveler")
     email: EmailStr = Field(..., description="Unique email address")
     phone: str = Field(..., min_length=7, max_length=50, description="Contact phone number")
     password: str = Field(..., min_length=6, max_length=128, description="Password with minimum 6 characters")

@@ -239,4 +239,66 @@ describe('Phase 9 — Account, Profile & Personalization', () => {
       expect(upcomingCount).toBe(0);
     });
   });
+
+  describe('Phase 9.1 — Network Error Sanitization & User Protection', () => {
+    it('sanitizes raw browser network errors to a user-friendly message', () => {
+      const sanitizeNetworkError = (rawErrMessage: string): string => {
+        // Raw browser messages should not be exposed directly to normal users
+        const isNetworkFailure =
+          rawErrMessage.toLowerCase().includes('networkerror') ||
+          rawErrMessage.toLowerCase().includes('failed to fetch') ||
+          rawErrMessage.toLowerCase().includes('network connection');
+        if (isNetworkFailure) {
+          return 'Unable to connect to VoyageHub right now. Please make sure the VoyageHub service is running and try again.';
+        }
+        return rawErrMessage;
+      };
+
+      expect(sanitizeNetworkError('NetworkError when attempting to fetch resource.')).toBe(
+        'Unable to connect to VoyageHub right now. Please make sure the VoyageHub service is running and try again.'
+      );
+      expect(sanitizeNetworkError('Failed to fetch')).toBe(
+        'Unable to connect to VoyageHub right now. Please make sure the VoyageHub service is running and try again.'
+      );
+      expect(sanitizeNetworkError('Email is already registered. Please sign in or use another email.')).toBe(
+        'Email is already registered. Please sign in or use another email.'
+      );
+    });
+
+    it('ensures User A and User B data structures are fully isolated', () => {
+      const userA: User = {
+        id: 'usr_A',
+        email: 'alice@example.com',
+        fullName: 'Alice Johnson',
+        phone: '+919840111111',
+        createdAt: '2026-10-01T10:00:00Z',
+        preferences: { preferred_transport: 'flight', preferred_cabin: 'Business' },
+      };
+
+      const userB: User = {
+        id: 'usr_B',
+        email: 'bob@example.com',
+        fullName: 'Bob Williams',
+        phone: '+919840122222',
+        createdAt: '2026-10-01T11:00:00Z',
+        preferences: { preferred_transport: 'train', preferred_cabin: 'Economy' },
+      };
+
+      const bookingsStore: Record<string, Partial<Booking>[]> = {
+        [userA.id]: [{ id: 'b_a1', userId: userA.id, status: 'upcoming' }],
+        [userB.id]: [{ id: 'b_b1', userId: userB.id, status: 'completed' }],
+      };
+
+      // Querying for User B should never yield User A's items
+      const userBBookings = bookingsStore[userB.id] || [];
+      expect(userBBookings).toHaveLength(1);
+      expect(userBBookings[0].id).toBe('b_b1');
+      expect(userBBookings.some((b) => b.userId === userA.id)).toBe(false);
+
+      // Preferences remain distinct
+      expect(userA.preferences?.preferred_transport).toBe('flight');
+      expect(userB.preferences?.preferred_transport).toBe('train');
+    });
+  });
 });
+

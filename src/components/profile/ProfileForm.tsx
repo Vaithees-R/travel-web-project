@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../../types/auth';
 import { api } from '../../services/api';
 import { Check, AlertCircle, Loader2, Save, User as UserIcon, Phone, Mail, Hash } from 'lucide-react';
@@ -14,6 +14,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user, onUpdateUser }) 
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFullName(user.fullName);
+    setPhone(user.phone);
+  }, [user.fullName, user.phone]);
 
   // Field validation errors
   const [fieldErrors, setFieldErrors] = useState<{ fullName?: string; phone?: string }>({});
@@ -66,18 +71,19 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user, onUpdateUser }) 
       </div>
 
       {successMessage && (
-        <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
-          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+        <div role="status" aria-live="polite" className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+        <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" aria-hidden="true" />
           <span>{errorMessage}</span>
         </div>
       )}
+
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Full Name */}
@@ -161,21 +167,23 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({ user, onUpdateUser }) 
           <button
             type="submit"
             disabled={isSaving}
-            className="px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-600 text-white font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
+            aria-busy={isSaving}
+            className="px-5 py-2.5 min-h-[44px] bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-600 text-white font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs focus-ring cursor-pointer"
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
                 <span>Saving Changes...</span>
               </>
             ) : (
               <>
-                <Save className="w-3.5 h-3.5" />
+                <Save className="w-3.5 h-3.5" aria-hidden="true" />
                 <span>Save Changes</span>
               </>
             )}
           </button>
         </div>
+
       </form>
     </div>
   );

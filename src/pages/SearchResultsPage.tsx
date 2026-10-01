@@ -6,13 +6,11 @@ import {
   Calendar,
   Users,
   SlidersHorizontal,
-  Loader2,
-  AlertCircle,
   HelpCircle,
   Compass,
   Car,
-  RotateCcw,
 } from 'lucide-react';
+
 import { CanonicalTransportType } from '../types/travel';
 import { SearchCriteria, TravelOption, FilterState, SortOption, TripType } from '../types/booking';
 import { TravelSearchService, SearchResultResponse } from '../services/travel/travelSearchService';
@@ -22,6 +20,9 @@ import { FilterPanel } from '../components/booking/FilterPanel';
 import { SortControl } from '../components/booking/SortControl';
 import { ResultItemCard } from '../components/booking/ResultItemCard';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { SkeletonResultCard } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
+import { ErrorState } from '../components/ui/ErrorState';
 
 export const SearchResultsPage: React.FC = () => {
   const { service: rawService } = useParams<{ service: string }>();
@@ -251,7 +252,7 @@ export const SearchResultsPage: React.FC = () => {
 
             {/* Sorting & Results Count Bar */}
             <div className="bg-white p-4 rounded-2xl border border-neutral-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="text-xs font-semibold text-neutral-600">
+              <div className="text-xs font-semibold text-neutral-600" aria-live="polite">
                 {searchResult?.unfilteredCount !== undefined &&
                 searchResult.unfilteredCount > results.length ? (
                   <span>
@@ -270,41 +271,30 @@ export const SearchResultsPage: React.FC = () => {
 
             {/* Results or Loading / Error states */}
             {isLoading ? (
-              <div className="bg-white rounded-3xl border border-neutral-200 p-12 text-center space-y-4">
-                <Loader2 className="w-8 h-8 animate-spin text-neutral-500 mx-auto" />
-                <p className="text-sm font-semibold text-neutral-700">
-                  Searching scheduled travel routes...
-                </p>
-                <p className="text-xs text-neutral-400">
-                  Checking inventory, cabin allocations, and lowest transparent fares
-                </p>
+              <div
+                className="space-y-4"
+                role="status"
+                aria-live="polite"
+                aria-label="Searching scheduled travel routes"
+              >
+                <div className="sr-only">Searching scheduled travel routes... Checking inventory and lowest fares.</div>
+                <SkeletonResultCard />
+                <SkeletonResultCard />
+                <SkeletonResultCard />
               </div>
             ) : searchResult && !searchResult.isValid ? (
-              /* Validation Error Banner */
-              <div className="bg-white rounded-3xl border border-red-200 p-8 sm:p-10 text-center space-y-4 shadow-xs">
-                <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
-                  <AlertCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-neutral-900">Invalid Search Criteria</h3>
-                  <p className="text-sm text-neutral-600 mt-1 max-w-md mx-auto">
-                    {searchResult.validationError ||
-                      'Please ensure departure and destination locations are distinct.'}
-                  </p>
-                </div>
-                <div className="pt-2">
-                  <Link
-                    to={`/${routeServicePath}`}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-neutral-900 text-white rounded-xl text-xs font-semibold hover:bg-neutral-800 transition-colors shadow-xs"
-                  >
-                    <span>Change Search Route</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
+              <ErrorState
+                title="Invalid Search Criteria"
+                description={
+                  searchResult.validationError ||
+                  'Please ensure departure and destination locations are distinct.'
+                }
+                secondaryActionText="Change Search Route"
+                onSecondaryAction={() => navigate(`/${routeServicePath}`)}
+              />
             ) : results.length > 0 ? (
               /* Results List */
-              <div className="space-y-4">
+              <div className="space-y-4" role="region" aria-label="Available Travel Options">
                 {results.map((option) => (
                   <ResultItemCard
                     key={option.id}
@@ -315,29 +305,15 @@ export const SearchResultsPage: React.FC = () => {
               </div>
             ) : searchResult?.emptyReason === 'ALL_FILTERED_OUT' ? (
               /* All Filtered Out Recovery State */
-              <div className="bg-white rounded-3xl border border-neutral-200 p-8 sm:p-10 text-center space-y-4 shadow-xs">
-                <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
-                  <SlidersHorizontal className="w-6 h-6" />
-                </div>
-                <h3 className="text-base font-bold text-neutral-800">
-                  No options match your active filters
-                </h3>
-                <p className="text-xs text-neutral-500 max-w-md mx-auto">
-                  We found {searchResult.unfilteredCount} available {service} option(s) on this
-                  route, but they are excluded by your price, stops, or operator filters.
-                </p>
-                <div className="pt-2 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-neutral-900 text-white rounded-xl text-xs font-semibold hover:bg-neutral-800 transition-colors"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Reset All Filters</span>
-                  </button>
-                </div>
-              </div>
+              <EmptyState
+                icon={SlidersHorizontal}
+                title="No options match your active filters"
+                description={`We found ${searchResult.unfilteredCount} available ${service} option(s) on this route, but they are excluded by your price, stops, or operator filters.`}
+                actionText="Reset All Filters"
+                onAction={handleResetFilters}
+              />
             ) : (
+
               /* No Route Inventory State with Structured Recovery Suggestions */
               <div className="bg-white rounded-3xl border border-neutral-200 p-8 sm:p-10 text-center space-y-5 shadow-xs">
                 <div className="w-12 h-12 rounded-2xl bg-neutral-100 text-neutral-500 flex items-center justify-center mx-auto">

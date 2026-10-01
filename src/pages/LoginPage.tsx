@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Compass, ArrowRight, CheckCircle2, Eye, EyeOff, AlertCircle, Loader2, Sparkles, ShieldAlert } from 'lucide-react';
+import { Compass, ArrowRight, CheckCircle2, Eye, EyeOff, AlertCircle, Loader2, Sparkles } from 'lucide-react';
 import { TravelImageCarousel } from '../components/media/TravelImageCarousel';
 import { SCENIC_IMAGES, FLIGHT_IMAGES, TRAIN_IMAGES } from '../assets/travelImages';
 import { useAuth } from '../hooks/useAuth';
@@ -197,14 +197,6 @@ export const LoginPage: React.FC = () => {
                 )}
               </button>
             </form>
-
-            {/* Full-Stack Notice */}
-            <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-200/80 flex items-start gap-2.5">
-              <ShieldAlert className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <p className="text-[11px] text-neutral-600 leading-normal">
-                <strong>Full-Stack Authentication:</strong> Backed by FastAPI REST API, PostgreSQL persistence, bcrypt password hashing, and JWT authorization tokens.
-              </p>
-            </div>
 
             <div className="pt-2 border-t border-neutral-100 text-center text-xs text-neutral-500">
               New to VoyageHub?{' '}

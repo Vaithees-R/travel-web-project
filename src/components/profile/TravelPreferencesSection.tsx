@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, TravelPreferences } from '../../types/auth';
 import { api } from '../../services/api';
 import { Check, AlertCircle, Loader2, Save, Plane, Train, Bus, Car, Compass, Utensils, Bell } from 'lucide-react';
@@ -29,6 +29,15 @@ export const TravelPreferencesSection: React.FC<TravelPreferencesSectionProps> =
   const [contactMethod, setContactMethod] = useState<'email' | 'phone'>(
     initialPrefs.contact_method || 'email'
   );
+
+  useEffect(() => {
+    const prefs = user.preferences || {};
+    if (prefs.preferred_transport) setPreferredTransport(prefs.preferred_transport);
+    if (prefs.preferred_cabin) setPreferredCabin(prefs.preferred_cabin);
+    if (prefs.preferred_seat) setPreferredSeat(prefs.preferred_seat);
+    if (prefs.meal_preference) setMealPreference(prefs.meal_preference);
+    if (prefs.contact_method) setContactMethod(prefs.contact_method);
+  }, [user.preferences]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -77,15 +86,15 @@ export const TravelPreferencesSection: React.FC<TravelPreferencesSectionProps> =
       </div>
 
       {successMessage && (
-        <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
-          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+        <div role="status" aria-live="polite" className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
           <span>{successMessage}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+        <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" aria-hidden="true" />
           <span>{errorMessage}</span>
         </div>
       )}
@@ -109,21 +118,23 @@ export const TravelPreferencesSection: React.FC<TravelPreferencesSectionProps> =
                 <button
                   key={mode.id}
                   type="button"
+                  aria-pressed={isSelected}
                   onClick={() => setPreferredTransport(mode.id as any)}
                   className={cn(
-                    'p-3 rounded-2xl border text-left transition-all flex items-center gap-2.5',
+                    'p-3 min-h-[44px] rounded-2xl border text-left transition-all flex items-center gap-2.5 focus-ring cursor-pointer',
                     isSelected
                       ? 'border-neutral-900 bg-neutral-900 text-white shadow-xs font-semibold'
                       : 'border-neutral-200 hover:border-neutral-300 bg-neutral-50 text-neutral-700'
                   )}
                 >
-                  <Icon className={cn('w-4 h-4', isSelected ? 'text-emerald-400' : mode.color)} />
+                  <Icon className={cn('w-4 h-4', isSelected ? 'text-emerald-400' : mode.color)} aria-hidden="true" />
                   <span className="text-xs">{mode.label}</span>
                 </button>
               );
             })}
           </div>
         </div>
+
 
         {/* Preferred Cabin Class */}
         <div className="space-y-2">

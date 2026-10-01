@@ -68,7 +68,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({ user, onLogout
         confirm_password: confirmPassword,
       });
 
-      setSuccessMessage('Password changed successfully. Your account is secured with bcrypt.');
+      setSuccessMessage('Password changed successfully. Your account has been updated securely.');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -93,7 +93,7 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({ user, onLogout
       <div className="bg-white rounded-3xl border border-neutral-200 p-6 sm:p-8 space-y-6 shadow-xs">
         <div>
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 mb-2">
-            <Shield className="w-3.5 h-3.5 text-emerald-600" />
+            <Shield className="w-3.5 h-3.5 text-emerald-600" aria-hidden="true" />
             <span>Encrypted Authentication</span>
           </div>
           <h2 className="text-base sm:text-lg font-bold text-neutral-900">
@@ -105,18 +105,19 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({ user, onLogout
         </div>
 
         {successMessage && (
-          <div className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+          <div role="status" aria-live="polite" className="p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2">
+            <Check className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
             <span>{successMessage}</span>
           </div>
         )}
 
         {errorMessage && (
-          <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" aria-hidden="true" />
             <span>{errorMessage}</span>
           </div>
         )}
+
 
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           {/* Current Password */}
@@ -212,22 +213,24 @@ export const SecuritySection: React.FC<SecuritySectionProps> = ({ user, onLogout
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-600 text-white font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
+              aria-busy={isSubmitting}
+              className="px-5 py-2.5 min-h-[44px] bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-600 text-white font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs focus-ring cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
                   <span>Updating Password...</span>
                 </>
               ) : (
                 <>
-                  <Key className="w-3.5 h-3.5" />
+                  <Key className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Change Password</span>
                 </>
               )}
             </button>
           </div>
         </form>
+
       </div>
 
       {/* Session Management Card */}

@@ -105,3 +105,19 @@ def test_protected_endpoint_rejects_missing_token(client):
     response = client.get("/api/auth/me")
     assert response.status_code == 401
     assert "Authentication token required" in response.json()["detail"]
+
+def test_register_with_camelcase_fullname(client):
+    response = client.post(
+        "/api/auth/register",
+        json={
+            "fullName": "Frank Castle",
+            "email": "frank@example.com",
+            "phone": "+91 98765 66666",
+            "password": "Password123!",
+        },
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["user"]["full_name"] == "Frank Castle"
+    assert data["user"]["email"] == "frank@example.com"
+

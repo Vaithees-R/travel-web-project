@@ -348,11 +348,12 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
 
         {/* Validation Warning Alert */}
         {validationError && (
-          <div className="bg-red-50 border border-red-200 rounded-2xl p-3 flex items-center gap-2.5 text-xs text-red-700 animate-fadeIn">
-            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+          <div role="alert" className="bg-red-50 border border-red-200 rounded-2xl p-3 flex items-center gap-2.5 text-xs text-red-700 animate-fadeIn">
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0" aria-hidden="true" />
             <span className="font-semibold">{validationError}</span>
           </div>
         )}
+
 
         {/* Input Fields Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
@@ -383,11 +384,13 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
             <button
               type="button"
               onClick={handleSwap}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white border border-neutral-300 shadow-xs text-neutral-600 hover:text-neutral-900 hover:border-neutral-400 flex items-center justify-center transition-transform hover:rotate-180"
+              aria-label="Swap origin and destination"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-neutral-300 shadow-xs text-neutral-600 hover:text-neutral-900 hover:border-neutral-400 flex items-center justify-center transition-transform hover:rotate-180 focus-ring cursor-pointer"
               title="Swap Origin and Destination"
             >
-              <ArrowLeftRight className="w-3 h-3" />
+              <ArrowLeftRight className="w-3.5 h-3.5" aria-hidden="true" />
             </button>
+
 
             {/* To */}
             <div className="p-2.5 sm:p-3 sm:border-l sm:border-neutral-200">
@@ -455,17 +458,19 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
 
             <button
               type="submit"
+              aria-label={`Search ${mode}`}
               className={cn(
-                'h-[58px] px-5 rounded-2xl text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shrink-0 cursor-pointer',
+                'h-[58px] px-5 rounded-2xl text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shrink-0 cursor-pointer focus-ring',
                 mode === 'flights' && 'bg-sky-600 hover:bg-sky-700 shadow-sky-600/20',
                 mode === 'trains' && 'bg-amber-700 hover:bg-amber-800 shadow-amber-700/20',
                 mode === 'buses' && 'bg-emerald-700 hover:bg-emerald-800 shadow-emerald-700/20',
                 mode === 'cabs' && 'bg-indigo-700 hover:bg-indigo-800 shadow-indigo-700/20'
               )}
             >
-              <Search className="w-4 h-4" />
+              <Search className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Search</span>
             </button>
+
           </div>
         </div>
 

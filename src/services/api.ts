@@ -109,8 +109,12 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     if (err instanceof ApiError) {
       throw err;
     }
-    // Network or offline error
-    throw new ApiError(err?.message || 'Network connection failed. Please ensure the backend is running.', 0);
+    // Network or server unreachable error (e.g. backend down or CORS failure)
+    console.warn('API request network error:', err);
+    throw new ApiError(
+      'Unable to connect to VoyageHub right now. Please make sure the VoyageHub service is running and try again.',
+      0
+    );
   }
 }
 
@@ -169,9 +173,16 @@ export const api = {
     },
 
     register: async (credentials: RegisterCredentials): Promise<{ access_token: string; user: User }> => {
+      const payload = {
+        full_name: credentials.fullName,
+        fullName: credentials.fullName,
+        email: credentials.email,
+        phone: credentials.phone,
+        password: credentials.password,
+      };
       const res = await request<{ access_token: string; token_type: string; user: any }>('/auth/register', {
         method: 'POST',
-        body: JSON.stringify(credentials),
+        body: JSON.stringify(payload),
       });
       tokenStorage.set(res.access_token);
       return {

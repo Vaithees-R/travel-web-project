@@ -400,81 +400,105 @@ export const PassengerDetailsPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Full Name */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-neutral-400" />
+              <label htmlFor="primary-fullName" className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-neutral-400" aria-hidden="true" />
                 <span>Full Legal Name *</span>
               </label>
               <input
+                id="primary-fullName"
                 type="text"
                 placeholder="e.g. Alexander Wright"
                 value={fullName}
+                aria-invalid={Boolean(errors.fullName)}
+                aria-describedby={errors.fullName ? 'primary-fullName-error' : undefined}
                 onChange={(e) => {
                   setFullName(e.target.value);
                   if (errors.fullName) setErrors({ ...errors, fullName: '' });
                 }}
-                className={`w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border bg-neutral-50/50 focus:bg-white focus:outline-none transition-all ${
+                className={`w-full px-4 py-2.5 min-h-[44px] text-xs sm:text-sm rounded-xl border bg-neutral-50/50 focus:bg-white focus:outline-none transition-all ${
                   errors.fullName
                     ? 'border-red-300 focus:ring-2 focus:ring-red-400'
                     : 'border-neutral-200 focus:ring-2 focus:ring-neutral-900'
                 }`}
               />
-              {errors.fullName && <p className="text-[11px] text-red-600">{errors.fullName}</p>}
+              {errors.fullName && (
+                <p id="primary-fullName-error" role="alert" className="text-[11px] text-red-600 font-medium">
+                  {errors.fullName}
+                </p>
+              )}
             </div>
 
             {/* Email */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-neutral-400" />
+              <label htmlFor="primary-email" className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5 text-neutral-400" aria-hidden="true" />
                 <span>E-Ticket & Boarding Pass Email *</span>
               </label>
               <input
+                id="primary-email"
                 type="email"
                 placeholder="alexander@voyagehub.com"
                 value={email}
+                aria-invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? 'primary-email-error' : undefined}
                 onChange={(e) => {
                   setEmail(e.target.value);
                   if (errors.email) setErrors({ ...errors, email: '' });
                 }}
-                className={`w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border bg-neutral-50/50 focus:bg-white focus:outline-none transition-all ${
+                className={`w-full px-4 py-2.5 min-h-[44px] text-xs sm:text-sm rounded-xl border bg-neutral-50/50 focus:bg-white focus:outline-none transition-all ${
                   errors.email
                     ? 'border-red-300 focus:ring-2 focus:ring-red-400'
                     : 'border-neutral-200 focus:ring-2 focus:ring-neutral-900'
                 }`}
               />
-              {errors.email && <p className="text-[11px] text-red-600">{errors.email}</p>}
+              {errors.email && (
+                <p id="primary-email-error" role="alert" className="text-[11px] text-red-600 font-medium">
+                  {errors.email}
+                </p>
+              )}
             </div>
 
             {/* Contact Phone */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-neutral-400" />
+              <label htmlFor="primary-phone" className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-neutral-400" aria-hidden="true" />
                 <span>Mobile Phone (SMS Gate & Chauffeur Updates) *</span>
               </label>
               <input
+                id="primary-phone"
                 type="tel"
                 placeholder="+91 98401 23456"
                 value={phone}
+                aria-invalid={Boolean(errors.phone)}
+                aria-describedby={errors.phone ? 'primary-phone-error' : undefined}
                 onChange={(e) => {
                   setPhone(e.target.value);
                   if (errors.phone) setErrors({ ...errors, phone: '' });
                 }}
-                className={`w-full px-4 py-2.5 text-xs sm:text-sm rounded-xl border bg-neutral-50/50 focus:bg-white focus:outline-none transition-all ${
+                className={`w-full px-4 py-2.5 min-h-[44px] text-xs sm:text-sm rounded-xl border bg-neutral-50/50 focus:bg-white focus:outline-none transition-all ${
                   errors.phone
                     ? 'border-red-300 focus:ring-2 focus:ring-red-400'
                     : 'border-neutral-200 focus:ring-2 focus:ring-neutral-900'
                 }`}
               />
-              {errors.phone && <p className="text-[11px] text-red-600">{errors.phone}</p>}
+              {errors.phone && (
+                <p id="primary-phone-error" role="alert" className="text-[11px] text-red-600 font-medium">
+                  {errors.phone}
+                </p>
+              )}
             </div>
 
             {/* Demographics: Gender & Age */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-700 block">Gender *</label>
+                <label htmlFor="primary-gender" className="text-xs font-bold text-neutral-700 block">
+                  Gender *
+                </label>
                 <select
+                  id="primary-gender"
                   value={gender}
                   onChange={(e) => setGender(e.target.value as any)}
-                  className="w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border border-neutral-200 bg-neutral-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900"
+                  className="w-full px-3 py-2.5 min-h-[44px] text-xs sm:text-sm rounded-xl border border-neutral-200 bg-neutral-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-neutral-900"
                 >
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -483,26 +507,36 @@ export const PassengerDetailsPage: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-700 block">Age (Years) *</label>
+                <label htmlFor="primary-age" className="text-xs font-bold text-neutral-700 block">
+                  Age (Years) *
+                </label>
                 <input
+                  id="primary-age"
                   type="number"
                   min="1"
                   max="120"
                   value={age}
+                  aria-invalid={Boolean(errors.age)}
+                  aria-describedby={errors.age ? 'primary-age-error' : undefined}
                   onChange={(e) => {
                     setAge(e.target.value);
                     if (errors.age) setErrors({ ...errors, age: '' });
                   }}
-                  className={`w-full px-3 py-2.5 text-xs sm:text-sm rounded-xl border bg-neutral-50/50 focus:bg-white focus:outline-none transition-all ${
+                  className={`w-full px-3 py-2.5 min-h-[44px] text-xs sm:text-sm rounded-xl border bg-neutral-50/50 focus:bg-white focus:outline-none transition-all ${
                     errors.age
                       ? 'border-red-300 focus:ring-2 focus:ring-red-400'
                       : 'border-neutral-200 focus:ring-2 focus:ring-neutral-900'
                   }`}
                 />
-                {errors.age && <p className="text-[11px] text-red-600">{errors.age}</p>}
+                {errors.age && (
+                  <p id="primary-age-error" role="alert" className="text-[11px] text-red-600 font-medium">
+                    {errors.age}
+                  </p>
+                )}
               </div>
             </div>
           </div>
+
 
           {/* International Passport Section (when Flight & International) */}
           {isInternationalFlight && (
@@ -800,19 +834,27 @@ export const PassengerDetailsPage: React.FC = () => {
           {/* Action Bar */}
           <div className="pt-4 border-t border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-xs text-neutral-500">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" aria-hidden="true" />
               <span>Identity encrypted with AES-256 travel compliance standards.</span>
             </div>
 
+            {Object.keys(errors).length > 0 && (
+              <div role="alert" className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" aria-hidden="true" />
+                <span>Please correct the highlighted fields above.</span>
+              </div>
+            )}
+
             <button
               type="submit"
-              className="px-6 py-3 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+              className="px-6 py-3 min-h-[44px] bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-md focus-ring cursor-pointer"
             >
               <span>Continue to Trip Review</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </form>
+
       </div>
     </div>
   );

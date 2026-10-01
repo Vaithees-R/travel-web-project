@@ -704,20 +704,21 @@ export const CheckoutPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting || paymentStatus === 'processing'}
-                    className={`w-full py-4 text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer ${
+                    aria-busy={paymentStatus === 'processing'}
+                    className={`w-full py-4 min-h-[48px] text-white rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-md focus-ring cursor-pointer ${
                       isSubmitting || paymentStatus === 'processing'
-                        ? 'bg-neutral-400 cursor-not-allowed'
+                        ? 'bg-neutral-400 cursor-wait'
                         : 'bg-neutral-900 hover:bg-neutral-800 hover:shadow-lg'
                     }`}
                   >
                     {paymentStatus === 'processing' ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <Loader2 className="w-4 h-4 animate-spin text-white" aria-hidden="true" />
                         <span>Processing Payment...</span>
                       </>
                     ) : (
                       <>
-                        <Lock className="w-4 h-4" />
+                        <Lock className="w-4 h-4" aria-hidden="true" />
                         <span>Pay ₹{fareBreakdown.totalFare.toLocaleString('en-IN')} & Confirm</span>
                       </>
                     )}
@@ -731,18 +732,25 @@ export const CheckoutPage: React.FC = () => {
 
       {/* Processing Modal Overlay */}
       {paymentStatus === 'processing' && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="processing-title"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+        >
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center space-y-4 shadow-2xl border border-neutral-100 animate-in fade-in zoom-in-95 duration-150">
             <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto text-neutral-800">
-              <Loader2 className="w-7 h-7 animate-spin text-neutral-800" />
+              <Loader2 className="w-7 h-7 animate-spin text-neutral-800" aria-hidden="true" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-neutral-900">
+              <h3 id="processing-title" className="text-base font-bold text-neutral-900">
                 Contacting Payment Gateway...
               </h3>
-              <p className="text-xs text-neutral-500 mt-1">{processingStep}</p>
+              <p role="status" aria-live="polite" className="text-xs text-neutral-500 mt-1 min-h-[18px]">
+                {processingStep}
+              </p>
             </div>
-            <div className="w-full bg-neutral-100 rounded-full h-1.5 overflow-hidden">
+            <div className="w-full bg-neutral-100 rounded-full h-1.5 overflow-hidden" aria-hidden="true">
               <div className="bg-emerald-600 h-full w-2/3 animate-pulse rounded-full" />
             </div>
             <p className="text-[10px] text-neutral-400">
@@ -751,6 +759,7 @@ export const CheckoutPage: React.FC = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

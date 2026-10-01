@@ -100,6 +100,7 @@ export const ProfilePage: React.FC = () => {
       {/* 2. Horizontal Navigation Tabs */}
       <div className="border-b border-neutral-200">
         <nav
+          role="tablist"
           className="flex space-x-2 sm:space-x-3 overflow-x-auto pb-2 scrollbar-none"
           aria-label="Profile Sections"
         >
@@ -110,9 +111,13 @@ export const ProfilePage: React.FC = () => {
               <button
                 key={tab.id}
                 type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`tabpanel-${tab.id}`}
+                id={`tab-${tab.id}`}
                 onClick={() => handleTabChange(tab.id)}
                 className={cn(
-                  'flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all select-none',
+                  'flex items-center gap-2 px-3.5 py-2.5 min-h-[40px] rounded-xl text-xs font-semibold whitespace-nowrap transition-all select-none focus-ring cursor-pointer',
                   isActive
                     ? 'bg-neutral-900 text-white shadow-2xs'
                     : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 bg-transparent'
@@ -123,6 +128,7 @@ export const ProfilePage: React.FC = () => {
                     'w-3.5 h-3.5',
                     isActive ? 'text-emerald-400' : tab.color || 'text-neutral-400'
                   )}
+                  aria-hidden="true"
                 />
                 <span>{tab.label}</span>
                 {typeof tab.badge === 'number' && (
@@ -144,19 +150,25 @@ export const ProfilePage: React.FC = () => {
       {/* 3. Tab Contents */}
       <div className="space-y-6">
         {activeTab === 'personal' && (
-          <ProfileForm user={user} onUpdateUser={updateUser} />
+          <div role="tabpanel" id="tabpanel-personal" aria-labelledby="tab-personal">
+            <ProfileForm user={user} onUpdateUser={updateUser} />
+          </div>
         )}
 
         {activeTab === 'preferences' && (
-          <TravelPreferencesSection user={user} onUpdateUser={updateUser} />
+          <div role="tabpanel" id="tabpanel-preferences" aria-labelledby="tab-preferences">
+            <TravelPreferencesSection user={user} onUpdateUser={updateUser} />
+          </div>
         )}
 
         {activeTab === 'security' && (
-          <SecuritySection user={user} onLogout={logout} />
+          <div role="tabpanel" id="tabpanel-security" aria-labelledby="tab-security">
+            <SecuritySection user={user} onLogout={logout} />
+          </div>
         )}
 
         {activeTab === 'activity' && (
-          <div className="space-y-6">
+          <div role="tabpanel" id="tabpanel-activity" aria-labelledby="tab-activity" className="space-y-6">
             <AccountStats
               totalTrips={totalTrips}
               upcomingCount={upcomingCount}
@@ -164,9 +176,14 @@ export const ProfilePage: React.FC = () => {
               cancelledCount={cancelledCount}
             />
             {isLoadingBookings ? (
-              <div className="bg-white rounded-3xl border border-neutral-200 p-8 text-center flex items-center justify-center gap-2 text-neutral-400 text-xs">
-                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
-                <span>Loading latest travel activity from PostgreSQL...</span>
+              <div
+                role="status"
+                aria-live="polite"
+                aria-label="Loading travel activity"
+                className="bg-white rounded-3xl border border-neutral-200 p-8 text-center flex items-center justify-center gap-2 text-neutral-500 text-xs"
+              >
+                <Loader2 className="w-4 h-4 animate-spin text-emerald-600" aria-hidden="true" />
+                <span>Loading latest travel activity...</span>
               </div>
             ) : (
               <AccountActivity bookings={bookings} />
@@ -175,9 +192,12 @@ export const ProfilePage: React.FC = () => {
         )}
 
         {activeTab === 'danger' && (
-          <AccountDangerZone userEmail={user.email} onLogout={logout} />
+          <div role="tabpanel" id="tabpanel-danger" aria-labelledby="tab-danger">
+            <AccountDangerZone userEmail={user.email} onLogout={logout} />
+          </div>
         )}
       </div>
+
     </div>
   );
 };

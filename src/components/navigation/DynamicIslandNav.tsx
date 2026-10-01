@@ -49,6 +49,17 @@ export const DynamicIslandNav: React.FC = () => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [mobileMenuOpen]);
+
   // Intelligent scroll listener: optimize visual weight and avoid obscuring content
   useEffect(() => {
     const handleScroll = () => {
@@ -116,13 +127,13 @@ export const DynamicIslandNav: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-lg p-1 group"
+              className="flex items-center gap-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-lg py-1 px-1.5 group transition-colors"
               title="Return to VoyageHub Home"
             >
-              <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs group-hover:scale-105 transition-transform">
-                <Compass className="w-3.5 h-3.5" />
+              <div className="w-5 h-5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 group-hover:scale-105 transition-transform">
+                <Compass className="w-3 h-3 text-emerald-400" />
               </div>
-              <span className="font-semibold text-xs sm:text-sm tracking-tight text-white">
+              <span className="font-semibold text-xs sm:text-sm tracking-tight text-white leading-none">
                 Voyage<span className="text-emerald-400">Hub</span>
               </span>
             </button>
@@ -211,7 +222,7 @@ export const DynamicIslandNav: React.FC = () => {
                   <NavLink
                     to="/about"
                     className={cn(
-                      'h-7.5 flex items-center px-2.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80 whitespace-nowrap shrink-0',
+                      'flex items-center px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80 whitespace-nowrap shrink-0',
                       location.pathname === '/about' && 'text-emerald-400 bg-neutral-800'
                     )}
                     title="About VoyageHub"
@@ -222,7 +233,7 @@ export const DynamicIslandNav: React.FC = () => {
                   <NavLink
                     to="/login"
                     className={cn(
-                      'h-7.5 flex items-center gap-1.5 px-3 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors whitespace-nowrap shrink-0',
+                      'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors whitespace-nowrap shrink-0',
                       location.pathname === '/login' && 'text-emerald-400 bg-neutral-800'
                     )}
                     title="Account Login"
@@ -234,8 +245,10 @@ export const DynamicIslandNav: React.FC = () => {
                   <NavLink
                     to="/register"
                     className={cn(
-                      'h-7.5 flex items-center justify-center px-3 rounded-xl text-xs font-semibold text-neutral-950 bg-emerald-400 hover:bg-emerald-300 transition-colors shadow-xs whitespace-nowrap shrink-0 leading-none',
-                      location.pathname === '/register' && 'ring-1 ring-white'
+                      'flex items-center justify-center px-3 py-1.5 rounded-xl text-xs font-medium transition-all whitespace-nowrap shrink-0 border',
+                      location.pathname === '/register'
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-2xs'
+                        : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border-emerald-500/30'
                     )}
                     title="Create Traveler Account"
                   >
@@ -271,9 +284,10 @@ export const DynamicIslandNav: React.FC = () => {
           {/* Mobile Menu Trigger Button */}
           <button
             type="button"
-            className="md:hidden p-1 text-neutral-300 hover:text-white focus-visible:outline-none"
+            className="md:hidden p-1 text-neutral-300 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 rounded-lg transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle mobile menu"
+            aria-expanded={mobileMenuOpen}
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
             {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
           </button>
@@ -282,7 +296,13 @@ export const DynamicIslandNav: React.FC = () => {
 
       {/* Mobile Drawer when Island is opened on smaller screens */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-neutral-950/70 backdrop-blur-xs md:hidden" onClick={() => setMobileMenuOpen(false)}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation Menu"
+          className="fixed inset-0 z-40 bg-neutral-950/70 backdrop-blur-xs md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        >
           <div 
             className="absolute top-16 left-4 right-4 bg-neutral-900 border border-neutral-800 text-white rounded-2xl p-4 shadow-2xl space-y-3"
             onClick={(e) => e.stopPropagation()}
@@ -299,8 +319,8 @@ export const DynamicIslandNav: React.FC = () => {
                     key={mode.id}
                     to={mode.path}
                     className={cn(
-                      'flex items-center gap-2 p-2.5 rounded-xl text-xs font-medium transition-colors',
-                      isActive ? 'bg-white text-neutral-900 font-semibold' : 'bg-neutral-800/80 text-neutral-200'
+                      'flex items-center gap-2 p-3 min-h-[44px] rounded-xl text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400',
+                      isActive ? 'bg-white text-neutral-900 font-semibold' : 'bg-neutral-800/80 text-neutral-200 hover:bg-neutral-700'
                     )}
                   >
                     <Icon className="w-4 h-4" />
@@ -312,11 +332,17 @@ export const DynamicIslandNav: React.FC = () => {
             <div className="border-t border-neutral-800 pt-3 flex items-center justify-between px-1 text-xs">
               {isAuthenticated ? (
                 <>
-                  <NavLink to="/bookings" className="text-neutral-300 hover:text-white flex items-center gap-1.5 font-medium">
+                  <NavLink
+                    to="/bookings"
+                    className="text-neutral-300 hover:text-white flex items-center gap-1.5 font-medium min-h-[44px] px-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  >
                     <Ticket className="w-3.5 h-3.5" />
                     <span>My Trips</span>
                   </NavLink>
-                  <NavLink to="/profile" className="text-neutral-300 hover:text-white flex items-center gap-1.5 font-medium">
+                  <NavLink
+                    to="/profile"
+                    className="text-neutral-300 hover:text-white flex items-center gap-1.5 font-medium min-h-[44px] px-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  >
                     <User className="w-3.5 h-3.5" />
                     <span>Profile</span>
                   </NavLink>
@@ -326,7 +352,7 @@ export const DynamicIslandNav: React.FC = () => {
                       logout();
                       navigate('/');
                     }}
-                    className="text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1"
+                    className="text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1 min-h-[44px] px-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
                   >
                     <LogOut className="w-3 h-3" />
                     <span>Sign Out</span>
@@ -334,13 +360,22 @@ export const DynamicIslandNav: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <NavLink to="/about" className="text-neutral-300 hover:text-white font-medium whitespace-nowrap">
+                  <NavLink
+                    to="/about"
+                    className="text-neutral-300 hover:text-white font-medium whitespace-nowrap min-h-[44px] flex items-center px-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  >
                     About
                   </NavLink>
-                  <NavLink to="/login" className="text-neutral-200 hover:text-white font-medium whitespace-nowrap">
+                  <NavLink
+                    to="/login"
+                    className="text-neutral-200 hover:text-white font-medium whitespace-nowrap min-h-[44px] flex items-center px-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  >
                     Sign In
                   </NavLink>
-                  <NavLink to="/register" className="px-3 py-1 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-neutral-950 font-semibold whitespace-nowrap text-xs">
+                  <NavLink
+                    to="/register"
+                    className="px-3.5 py-2 min-h-[38px] flex items-center justify-center rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 hover:text-white font-medium whitespace-nowrap text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+                  >
                     Sign Up
                   </NavLink>
                 </>
@@ -352,3 +387,4 @@ export const DynamicIslandNav: React.FC = () => {
     </>
   );
 };
+

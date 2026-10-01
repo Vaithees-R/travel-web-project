@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Trash2, X, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { AlertTriangle, Trash2, Lock, AlertCircle } from 'lucide-react';
+
 import { api } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
+import { Modal } from '../ui/Modal';
+import { Button } from '../ui/Button';
+
 
 export interface AccountDangerZoneProps {
   userEmail: string;
@@ -81,101 +85,86 @@ export const AccountDangerZone: React.FC<AccountDangerZoneProps> = ({ userEmail,
       </div>
 
       {/* Confirmation Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 border border-rose-200 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-rose-700 font-bold text-base sm:text-lg">
-                <AlertTriangle className="w-5 h-5 text-rose-600" />
-                <span>Confirm Account Deletion</span>
-              </div>
-              <button
+      <Modal
+        isOpen={isOpen}
+        onClose={() => !isDeleting && setIsOpen(false)}
+        title="Confirm Account Deletion"
+      >
+        <div className="space-y-5">
+          <div className="p-4 bg-rose-50/70 border border-rose-200/80 rounded-2xl text-xs text-rose-900 space-y-1.5 leading-relaxed">
+            <p className="font-semibold">You are about to delete account: {userEmail}</p>
+            <p className="text-[11px] text-rose-800">
+              This will purge all booking records, boarding passes, and account history from our database immediately.
+            </p>
+          </div>
+
+          {errorMessage && (
+            <div role="alert" className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" aria-hidden="true" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleDelete} className="space-y-4">
+            <div className="space-y-1">
+              <label htmlFor="delete-confirm-text" className="text-xs font-semibold text-neutral-700 block">
+                Type <span className="font-mono font-bold text-rose-700">DELETE</span> to confirm:
+              </label>
+              <input
+                id="delete-confirm-text"
+                type="text"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder="DELETE"
+                className="w-full h-11 px-3.5 text-xs bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white font-mono"
+                disabled={isDeleting}
+                required
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label htmlFor="delete-confirm-password" className="text-xs font-semibold text-neutral-700 block flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-neutral-400" aria-hidden="true" />
+                <span>Verify Account Password:</span>
+              </label>
+              <input
+                id="delete-confirm-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter current password"
+                className="w-full h-11 px-3.5 text-xs bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white font-mono"
+                disabled={isDeleting}
+                required
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
+              <Button
                 type="button"
+                variant="outline"
+                size="sm"
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
                 disabled={isDeleting}
               >
-                <X className="w-4 h-4" />
-              </button>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="danger"
+                size="sm"
+                disabled={!isConfirmed || isDeleting}
+                isLoading={isDeleting}
+                loadingText="Deleting Account..."
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
+                <span>Permanently Delete</span>
+              </Button>
             </div>
-
-            <div className="p-4 bg-rose-50/70 border border-rose-200/80 rounded-2xl text-xs text-rose-900 space-y-1.5 leading-relaxed">
-              <p className="font-semibold">You are about to delete account: {userEmail}</p>
-              <p className="text-[11px] text-rose-800">
-                This will purge all booking records, boarding passes, and account history from our PostgreSQL database immediately.
-              </p>
-            </div>
-
-            {errorMessage && (
-              <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleDelete} className="space-y-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-700 block">
-                  Type <span className="font-mono font-bold text-rose-700">DELETE</span> to confirm:
-                </label>
-                <input
-                  type="text"
-                  value={confirmText}
-                  onChange={(e) => setConfirmText(e.target.value)}
-                  placeholder="DELETE"
-                  className="w-full h-10 px-3.5 text-xs bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white font-mono"
-                  disabled={isDeleting}
-                  required
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-neutral-700 block flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-neutral-400" />
-                  <span>Verify Account Password:</span>
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter current password"
-                  className="w-full h-10 px-3.5 text-xs bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white font-mono"
-                  disabled={isDeleting}
-                  required
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  disabled={isDeleting}
-                  className="px-4 py-2.5 rounded-xl border border-neutral-200 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!isConfirmed || isDeleting}
-                  className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:bg-neutral-300 disabled:text-neutral-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer disabled:cursor-not-allowed"
-                >
-                  {isDeleting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      <span>Deleting Account...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Permanently Delete</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
+          </form>
         </div>
-      )}
+      </Modal>
     </div>
   );
 };
+

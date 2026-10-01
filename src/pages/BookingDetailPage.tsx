@@ -18,13 +18,17 @@ import {
   CreditCard,
   QrCode,
   Building2,
-  RefreshCw,
 } from 'lucide-react';
+
 import { Booking } from '../types/booking';
 import { TransportBadge } from '../components/ui/TransportBadge';
 import { FareBreakdown } from '../components/booking/FareBreakdown';
+import { Modal } from '../components/ui/Modal';
+import { Button } from '../components/ui/Button';
+import { SkeletonCard } from '../components/ui/Skeleton';
 import { api } from '../services/api';
 import { cn } from '../utils/cn';
+
 
 function maskPassport(passport?: string): string {
   if (!passport) return '';
@@ -110,19 +114,22 @@ export const BookingDetailPage: React.FC = () => {
   // Localized Skeleton Loader
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-50/60 pb-20 pt-6">
+      <div
+        className="min-h-screen bg-neutral-50/60 pb-20 pt-6"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading trip details"
+      >
+        <div className="sr-only">Loading booking itinerary from database...</div>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="h-6 w-36 bg-neutral-200 rounded-md animate-pulse" />
-          <div className="h-44 bg-white rounded-3xl border border-neutral-200 animate-pulse" />
-          <div className="h-64 bg-white rounded-3xl border border-neutral-200 animate-pulse" />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="h-48 bg-white rounded-3xl border border-neutral-200 animate-pulse" />
-            <div className="h-48 bg-white rounded-3xl border border-neutral-200 animate-pulse" />
-          </div>
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       </div>
     );
   }
+
 
   // Error / Not Found State
   if (!booking || loadError) {
@@ -532,61 +539,51 @@ export const BookingDetailPage: React.FC = () => {
         </div>
 
         {/* CANCELLATION CONFIRMATION MODAL */}
-        {showCancelModal && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl space-y-4 border border-neutral-200 animate-in fade-in zoom-in-95 duration-150">
-              <div className="flex items-center gap-3 text-rose-600">
-                <AlertCircle className="w-6 h-6" />
-                <h3 className="text-base sm:text-lg font-bold text-neutral-900">
-                  Cancel this trip?
-                </h3>
+        <Modal
+          isOpen={showCancelModal}
+          onClose={() => setShowCancelModal(false)}
+          title="Cancel this trip?"
+        >
+          <div className="space-y-4">
+            <p className="text-xs text-neutral-600 leading-relaxed">
+              Are you sure you want to cancel booking <strong>{booking.bookingRef}</strong> for {booking.primaryPassenger.fullName}?
+            </p>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 leading-relaxed">
+              <strong>Simulated Refund Notice:</strong> A 100% simulated refund of{' '}
+              <strong>₹{booking.fareBreakdown.totalFare.toLocaleString('en-IN')}</strong> will be credited to your{' '}
+              {booking.paymentMethod?.replace('_', ' ') || 'card'}. This is a demonstration sandbox; no real money is processed.
+            </div>
+
+            {cancelError && (
+              <div role="alert" className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800">
+                {cancelError}
               </div>
+            )}
 
-              <p className="text-xs text-neutral-600 leading-relaxed">
-                Are you sure you want to cancel booking <strong>{booking.bookingRef}</strong> for {booking.primaryPassenger.fullName}?
-              </p>
-
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 leading-relaxed">
-                <strong>Simulated Refund Notice:</strong> A 100% simulated refund of{' '}
-                <strong>₹{booking.fareBreakdown.totalFare.toLocaleString('en-IN')}</strong> will be credited to your{' '}
-                {booking.paymentMethod?.replace('_', ' ') || 'card'}. This is a demonstration sandbox; no real money is processed.
-              </div>
-
-              {cancelError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800">
-                  {cancelError}
-                </div>
-              )}
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
-                <button
-                  type="button"
-                  disabled={isCancelling}
-                  onClick={() => setShowCancelModal(false)}
-                  className="px-4 py-2 rounded-xl border border-neutral-200 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 transition-colors"
-                >
-                  Keep Booking
-                </button>
-                <button
-                  type="button"
-                  disabled={isCancelling}
-                  onClick={handleCancelConfirm}
-                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5"
-                >
-                  {isCancelling ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>Cancelling...</span>
-                    </>
-                  ) : (
-                    <span>Confirm Cancellation</span>
-                  )}
-                </button>
-              </div>
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-neutral-100">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isCancelling}
+                onClick={() => setShowCancelModal(false)}
+              >
+                Keep Booking
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                isLoading={isCancelling}
+                loadingText="Cancelling..."
+                onClick={handleCancelConfirm}
+              >
+                Confirm Cancellation
+              </Button>
             </div>
           </div>
-        )}
+        </Modal>
       </div>
     </div>
   );
 };
+

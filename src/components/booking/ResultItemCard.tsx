@@ -123,13 +123,15 @@ export const ResultItemCard: React.FC<ResultItemCardProps> = ({
               <button
                 type="button"
                 onClick={handleBook}
-                className="px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-sky-600/20 flex items-center gap-1.5"
+                aria-label={`Book flight with ${option.operator} ${option.identifier} for ₹${currentFare.toLocaleString('en-IN')}`}
+                className="px-5 py-2.5 min-h-[44px] rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-sky-600/20 flex items-center gap-1.5 focus-ring cursor-pointer"
               >
                 <span>Book Flight</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
+
 
           {/* Cabin Classes Selection Bar */}
           {option.cabinClasses && option.cabinClasses.length > 0 && (
@@ -234,13 +236,15 @@ export const ResultItemCard: React.FC<ResultItemCardProps> = ({
               <button
                 type="button"
                 onClick={handleBook}
-                className="px-5 py-2.5 rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-amber-700/20 flex items-center gap-1.5"
+                aria-label={`Book berth on ${option.operator} ${option.identifier} for ₹${currentFare.toLocaleString('en-IN')}`}
+                className="px-5 py-2.5 min-h-[44px] rounded-xl bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-amber-700/20 flex items-center gap-1.5 focus-ring cursor-pointer"
               >
                 <span>Book Berth</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
+
 
           {/* IRCTC Berth Classes Tiles */}
           {option.trainClasses && option.trainClasses.length > 0 && (
@@ -371,13 +375,15 @@ export const ResultItemCard: React.FC<ResultItemCardProps> = ({
               <button
                 type="button"
                 onClick={handleBook}
-                className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-emerald-700/20 flex items-center gap-1.5"
+                aria-label={`Select berth with ${option.operator} for ₹${currentFare.toLocaleString('en-IN')}`}
+                className="px-5 py-2.5 min-h-[44px] rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-emerald-700/20 flex items-center gap-1.5 focus-ring cursor-pointer"
               >
                 <span>Select Berth</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
+
 
           {/* Amenities Strip */}
           {option.amenities && option.amenities.length > 0 && (
@@ -471,14 +477,16 @@ export const ResultItemCard: React.FC<ResultItemCardProps> = ({
               <button
                 type="button"
                 onClick={handleBook}
-                className="px-5 py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-indigo-700/20 flex items-center gap-1.5"
+                aria-label={`Book chauffeur for ${option.cabCategory || option.operator} for ₹${currentFare.toLocaleString('en-IN')}`}
+                className="px-5 py-2.5 min-h-[44px] rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-indigo-700/20 flex items-center gap-1.5 focus-ring cursor-pointer"
               >
                 <span>Book Chauffeur</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </div>
           </div>
         </div>
+
       )}
     </div>
   );

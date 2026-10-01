@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Compass, ArrowRight, CheckCircle2, Eye, EyeOff, AlertCircle, Loader2, ShieldAlert } from 'lucide-react';
+import { Compass, ArrowRight, CheckCircle2, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { TravelImageCarousel } from '../components/media/TravelImageCarousel';
 import { SCENIC_IMAGES, BUS_IMAGES, CAB_IMAGES } from '../assets/travelImages';
 import { useAuth } from '../hooks/useAuth';
@@ -142,15 +142,12 @@ export const RegisterPage: React.FC = () => {
         {/* RIGHT: Focused Registration Form */}
         <div className="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-center bg-white">
           <div className="max-w-md w-full mx-auto space-y-5">
-            <div className="space-y-1">
-              <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
-                Create Traveler Account
-              </span>
+            <div className="space-y-1.5">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                Begin your journey
+                Create your VoyageHub account
               </h1>
-              <p className="text-xs text-neutral-500">
-                Register to manage multi-modal itineraries and personal e-tickets
+              <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
+                Manage your trips, passengers and travel preferences from one place.
               </p>
             </div>
 
@@ -166,7 +163,7 @@ export const RegisterPage: React.FC = () => {
               {/* Full Name */}
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-neutral-700 block">
-                  Full Legal Name
+                  Full name
                 </label>
                 <input
                   type="text"
@@ -187,7 +184,7 @@ export const RegisterPage: React.FC = () => {
               {/* Email Address */}
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-neutral-700 block">
-                  Email Address
+                  Email address
                 </label>
                 <input
                   type="email"
@@ -208,7 +205,7 @@ export const RegisterPage: React.FC = () => {
               {/* Mobile Phone */}
               <div className="space-y-1">
                 <label className="text-xs font-semibold text-neutral-700 block">
-                  Mobile Number (for simulated PNR alerts)
+                  Mobile number
                 </label>
                 <input
                   type="tel"
@@ -286,7 +283,7 @@ export const RegisterPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full h-11 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-600 text-white rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-md mt-3"
+                className="w-full h-11 bg-neutral-900 hover:bg-neutral-800 disabled:bg-neutral-600 text-white rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-md mt-4"
               >
                 {isSubmitting ? (
                   <>
@@ -295,20 +292,12 @@ export const RegisterPage: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <span>Create Traveler Account</span>
+                    <span>Create account</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
             </form>
-
-            {/* Full-Stack Notice */}
-            <div className="p-2.5 bg-neutral-50 rounded-xl border border-neutral-200/80 flex items-start gap-2">
-              <ShieldAlert className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-              <p className="text-[10px] text-neutral-600 leading-normal">
-                <strong>Full-Stack Registration:</strong> Accounts are persisted to PostgreSQL with salted bcrypt password hashing and tokenized JWT sessions.
-              </p>
-            </div>
 
             <div className="pt-2 border-t border-neutral-100 text-center text-xs text-neutral-500">
               Already have an account?{' '}

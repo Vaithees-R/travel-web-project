@@ -123,19 +123,26 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       {/* 1. Max Price Filter */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs font-semibold text-neutral-800">
-          <span>Max Price</span>
+          <label htmlFor="price-range-slider" className="cursor-pointer">
+            Max Price
+          </label>
           <span className="font-mono text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded-md">
             ₹{currentMaxPrice.toLocaleString('en-IN')}
           </span>
         </div>
         <input
+          id="price-range-slider"
           type="range"
           min={minPrice}
           max={maxPrice}
           step={50}
           value={currentMaxPrice}
           onChange={handlePriceChange}
-          className="w-full accent-neutral-900 h-1.5 bg-neutral-200 rounded-lg appearance-none cursor-pointer"
+          aria-label="Filter by maximum price"
+          aria-valuemin={minPrice}
+          aria-valuemax={maxPrice}
+          aria-valuenow={currentMaxPrice}
+          className="w-full accent-neutral-900 h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer focus-ring"
         />
         <div className="flex justify-between text-[10px] text-neutral-400 font-mono">
           <span>₹{minPrice.toLocaleString('en-IN')}</span>
@@ -145,53 +152,61 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
       {/* 2. Departure Time Window */}
       <div className="space-y-2">
-        <label className="text-xs font-semibold text-neutral-800 block">Departure Window</label>
+        <span className="text-xs font-semibold text-neutral-800 block">Departure Window</span>
         <div className="grid grid-cols-2 gap-1.5 text-xs">
           {[
             { id: 'all', label: 'Anytime' },
             { id: 'morning', label: 'Morning (6A-12P)' },
             { id: 'afternoon', label: 'Afternoon (12P-6P)' },
             { id: 'evening', label: 'Evening (6P-12A)' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => handleTimeWindowSelect(item.id as FilterState['departureTimeWindow'])}
-              className={`px-2 py-1.5 rounded-xl border text-[11px] font-medium transition-colors ${
-                (filters.departureTimeWindow || 'all') === item.id
-                  ? 'bg-neutral-900 text-white border-neutral-900'
-                  : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+          ].map((item) => {
+            const isSelected = (filters.departureTimeWindow || 'all') === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => handleTimeWindowSelect(item.id as FilterState['departureTimeWindow'])}
+                className={`px-2 py-2 min-h-[36px] rounded-xl border text-[11px] font-medium transition-colors focus-ring ${
+                  isSelected
+                    ? 'bg-neutral-900 text-white border-neutral-900 font-semibold'
+                    : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* 3. Flight Stops */}
       {service === 'flight' && (
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-neutral-800 block">Stops</label>
+          <span className="text-xs font-semibold text-neutral-800 block">Stops</span>
           <div className="flex items-center gap-1.5">
             {[
               { id: 'all', label: 'All' },
               { id: 0, label: 'Non-Stop' },
               { id: 1, label: '1 Stop' },
-            ].map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => handleStopsChange(option.id as number | 'all')}
-                className={`flex-1 py-1.5 text-xs rounded-xl border font-medium transition-colors ${
-                  (filters.stops ?? 'all') === option.id
-                    ? 'bg-sky-600 text-white border-sky-600'
-                    : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
+            ].map((option) => {
+              const isSelected = (filters.stops ?? 'all') === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  onClick={() => handleStopsChange(option.id as number | 'all')}
+                  className={`flex-1 py-2 min-h-[36px] text-xs rounded-xl border font-medium transition-colors focus-ring ${
+                    isSelected
+                      ? 'bg-sky-600 text-white border-sky-600 font-semibold'
+                      : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

@@ -20,7 +20,9 @@ import {
 import { Booking } from '../types/booking';
 import { BookingItineraryCard, BookingItineraryItem } from '../components/travel/BookingItineraryCard';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { SkeletonTripCard } from '../components/ui/Skeleton';
 import { useAuth } from '../hooks/useAuth';
+
 import { api } from '../services/api';
 import { cn } from '../utils/cn';
 
@@ -668,9 +670,11 @@ export const BookingsPage: React.FC = () => {
 
                 {/* Quick Search */}
                 <div className="relative flex-1 min-w-[200px]">
-                  <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
                   <input
+                    id="trips-search-input"
                     type="text"
+                    aria-label="Search bookings by PNR, city, or operator"
                     placeholder="Search PNR, city, operator..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -680,9 +684,10 @@ export const BookingsPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
+                      aria-label="Clear search query"
                       className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-neutral-400 hover:text-neutral-700"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="w-3.5 h-3.5" aria-hidden="true" />
                     </button>
                   )}
                 </div>
@@ -690,6 +695,8 @@ export const BookingsPage: React.FC = () => {
                 {/* Sort Selector */}
                 <div className="relative shrink-0">
                   <select
+                    id="trips-sort-select"
+                    aria-label="Sort travel bookings"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortBy)}
                     className="h-9 px-3 text-xs bg-neutral-50 border border-neutral-200 rounded-xl font-medium text-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-900 cursor-pointer"
@@ -708,12 +715,19 @@ export const BookingsPage: React.FC = () => {
 
         {/* 4. Trips Content Area */}
         {isLoading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-44 bg-white rounded-2xl border border-neutral-200 animate-pulse" />
-            ))}
+          <div
+            className="space-y-4"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading your travel bookings"
+          >
+            <div className="sr-only">Loading your travel bookings from database...</div>
+            <SkeletonTripCard />
+            <SkeletonTripCard />
+            <SkeletonTripCard />
           </div>
         ) : bookings.length === 0 ? (
+
           /* Empty State 1: No Trips Ever Booked */
           <div className="bg-white rounded-3xl border border-neutral-200 p-8 sm:p-14 text-center space-y-8 shadow-xs">
             <div className="max-w-md mx-auto space-y-3">
