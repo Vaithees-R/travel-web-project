@@ -1,5 +1,5 @@
 import { Booking, BookingStatus } from '../types/booking';
-import { User, LoginCredentials, RegisterCredentials } from '../types/auth';
+import { User, LoginCredentials, RegisterCredentials, TravelPreferences } from '../types/auth';
 
 const TOKEN_STORAGE_KEY = 'voyagehub_jwt_token';
 
@@ -115,6 +115,23 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 }
 
 // Adapters to normalize backend response to frontend domain types
+function adaptUser(data: any): User {
+  return {
+    id: data.id,
+    fullName: data.fullName || data.full_name || '',
+    email: data.email || '',
+    phone: data.phone || '',
+    createdAt: data.createdAt || data.created_at || new Date().toISOString(),
+    preferences: data.preferences || {
+      preferred_cabin: 'Economy',
+      preferred_transport: 'flight',
+      preferred_seat: 'Window',
+      meal_preference: 'No Preference',
+      contact_method: 'email',
+    },
+  };
+}
+
 function adaptBooking(data: any): Booking {
   return {
     id: data.id,
@@ -140,28 +157,35 @@ function adaptBooking(data: any): Booking {
 export const api = {
   auth: {
     login: async (credentials: LoginCredentials): Promise<{ access_token: string; user: User }> => {
-      const res = await request<{ access_token: string; token_type: string; user: User }>('/auth/login', {
+      const res = await request<{ access_token: string; token_type: string; user: any }>('/auth/login', {
         method: 'POST',
         body: JSON.stringify(credentials),
       });
       tokenStorage.set(res.access_token);
-      return res;
+      return {
+        ...res,
+        user: adaptUser(res.user),
+      };
     },
 
     register: async (credentials: RegisterCredentials): Promise<{ access_token: string; user: User }> => {
-      const res = await request<{ access_token: string; token_type: string; user: User }>('/auth/register', {
+      const res = await request<{ access_token: string; token_type: string; user: any }>('/auth/register', {
         method: 'POST',
         body: JSON.stringify(credentials),
       });
       tokenStorage.set(res.access_token);
-      return res;
+      return {
+        ...res,
+        user: adaptUser(res.user),
+      };
     },
 
     me: async (): Promise<User> => {
-      return await request<User>('/auth/me', {
+      const raw = await request<any>('/auth/me', {
         method: 'GET',
         requiresAuth: true,
       });
+      return adaptUser(raw);
     },
 
     logout: async (): Promise<void> => {
@@ -177,15 +201,55 @@ export const api = {
 
   users: {
     getMe: async (): Promise<User> => {
-      return await request<User>('/users/me', {
+      const raw = await request<any>('/users/me', {
+        method: 'GET',
+        requiresAuth: true,
+      });
+      return adaptUser(raw);
+    },
+
+    updateMe: async (data: { full_name?: string; phone?: string; preferences?: Partial<TravelPreferences> }): Promise<User> => {
+      const raw = await request<any>('/users/me', {
+        method: 'PATCH',
+        requiresAuth: true,
+        body: JSON.stringify(data),
+      });
+      return adaptUser(raw);
+    },
+
+    getPreferences: async (): Promise<TravelPreferences> => {
+      return await request<TravelPreferences>('/users/me/preferences', {
         method: 'GET',
         requiresAuth: true,
       });
     },
 
-    updateMe: async (data: { full_name?: string; phone?: string }): Promise<User> => {
-      return await request<User>('/users/me', {
+    savePreferences: async (prefs: Partial<TravelPreferences>): Promise<TravelPreferences> => {
+      return await request<TravelPreferences>('/users/me/preferences', {
         method: 'PATCH',
+        requiresAuth: true,
+        body: JSON.stringify(prefs),
+      });
+    },
+
+    changePassword: async (data: {
+      current_password: string;
+      new_password: string;
+      confirm_password: string;
+    }): Promise<{ status: string; message: string }> => {
+      return await request<{ status: string; message: string }>('/users/me/change-password', {
+        method: 'POST',
+        requiresAuth: true,
+        body: JSON.stringify(data),
+      });
+    },
+
+    deleteAccount: async (data: {
+      confirmation: string;
+      password: string;
+    }): Promise<{ status: string; message: string }> => {
+      return await request<{ status: string; message: string }>('/users/me', {
+        method: 'DELETE',
         requiresAuth: true,
         body: JSON.stringify(data),
       });

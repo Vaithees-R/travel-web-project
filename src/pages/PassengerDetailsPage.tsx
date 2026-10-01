@@ -77,9 +77,38 @@ export const PassengerDetailsPage: React.FC = () => {
   const [passportCountry, setPassportCountry] = useState<string>(
     session?.passenger?.passportCountry || 'India'
   );
-  const [preference, setPreference] = useState(
-    session?.passenger?.berthOrSeatPreference || 'No Preference'
-  );
+
+  const getInitialPreference = () => {
+    if (session?.passenger?.berthOrSeatPreference) {
+      return session.passenger.berthOrSeatPreference;
+    }
+    const pref = user?.preferences?.preferred_seat;
+    if (pref === 'Window') {
+      return service === 'bus' ? 'Window Seater' : service === 'train' ? 'Window Seat (Chair Car)' : 'Window Seat';
+    }
+    if (pref === 'Aisle') {
+      return service === 'bus' ? 'Aisle Seater' : 'Aisle Seat';
+    }
+    return 'No Preference';
+  };
+
+  const [preference, setPreference] = useState(getInitialPreference);
+
+  React.useEffect(() => {
+    if (user && !session?.passenger) {
+      if (!fullName && user.fullName) setFullName(user.fullName);
+      if (!email && user.email) setEmail(user.email);
+      if (!phone && user.phone) setPhone(user.phone);
+      if (preference === 'No Preference' && user.preferences?.preferred_seat) {
+        const pref = user.preferences.preferred_seat;
+        if (pref === 'Window') {
+          setPreference(service === 'bus' ? 'Window Seater' : service === 'train' ? 'Window Seat (Chair Car)' : 'Window Seat');
+        } else if (pref === 'Aisle') {
+          setPreference(service === 'bus' ? 'Aisle Seater' : 'Aisle Seat');
+        }
+      }
+    }
+  }, [user, service]);
 
   // Cab-specific location fields
   const [pickupAddress, setPickupAddress] = useState(

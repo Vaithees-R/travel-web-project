@@ -128,6 +128,7 @@ def cancel_booking(db: Session, booking_id: str, user_id: str) -> Optional[Booki
         return None
 
     record.status = "cancelled"
+    record.payment_status = "refunded"
     db.commit()
     db.refresh(record)
     return format_booking_response(record)

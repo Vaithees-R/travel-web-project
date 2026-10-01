@@ -133,7 +133,7 @@ export interface Booking {
   passengersCount: number;
   seatOrBerthAllocated: string;
   fareBreakdown: FareBreakdown;
-  paymentStatus?: 'paid' | 'pending' | 'failed';
+  paymentStatus?: 'paid' | 'pending' | 'failed' | 'refunded';
   paymentMethod?: 'card' | 'upi' | 'net_banking';
   paymentReference?: string;
   isSimulated: true;

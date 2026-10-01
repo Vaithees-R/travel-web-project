@@ -108,7 +108,7 @@ export const DynamicIslandNav: React.FC = () => {
             'bg-neutral-950/90 backdrop-blur-md text-white border border-neutral-700/60 shadow-xl',
             'flex items-center',
             isExpanded
-              ? 'rounded-2xl px-3 py-1.5 w-full max-w-2xl justify-between'
+              ? 'rounded-2xl px-3 py-1.5 w-full max-w-2xl lg:max-w-3xl justify-between'
               : 'rounded-full px-3.5 py-1.5 w-auto gap-3 cursor-pointer hover:bg-neutral-900 hover:border-neutral-500'
           )}
         >
@@ -172,7 +172,7 @@ export const DynamicIslandNav: React.FC = () => {
                   <NavLink
                     to="/bookings"
                     className={cn(
-                      'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
+                      'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80 whitespace-nowrap shrink-0',
                       location.pathname.startsWith('/bookings') && 'text-emerald-400 bg-neutral-800'
                     )}
                     title="My Trips & Itinerary"
@@ -184,13 +184,13 @@ export const DynamicIslandNav: React.FC = () => {
                   <NavLink
                     to="/profile"
                     className={cn(
-                      'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
+                      'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80 whitespace-nowrap shrink-0',
                       location.pathname === '/profile' && 'text-emerald-400 bg-neutral-800'
                     )}
                     title="Traveler Profile"
                   >
                     <User className="w-3.5 h-3.5" />
-                    <span className="max-w-[75px] truncate">{user?.fullName.split(' ')[0] || 'Profile'}</span>
+                    <span className="max-w-[85px] truncate">{user?.fullName.split(' ')[0] || 'Profile'}</span>
                   </NavLink>
 
                   <button
@@ -211,7 +211,7 @@ export const DynamicIslandNav: React.FC = () => {
                   <NavLink
                     to="/about"
                     className={cn(
-                      'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80',
+                      'h-7.5 flex items-center px-2.5 rounded-xl text-xs font-medium transition-colors text-neutral-300 hover:text-white hover:bg-neutral-800/80 whitespace-nowrap shrink-0',
                       location.pathname === '/about' && 'text-emerald-400 bg-neutral-800'
                     )}
                     title="About VoyageHub"
@@ -222,7 +222,7 @@ export const DynamicIslandNav: React.FC = () => {
                   <NavLink
                     to="/login"
                     className={cn(
-                      'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors',
+                      'h-7.5 flex items-center gap-1.5 px-3 rounded-xl text-xs font-medium text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors whitespace-nowrap shrink-0',
                       location.pathname === '/login' && 'text-emerald-400 bg-neutral-800'
                     )}
                     title="Account Login"
@@ -234,7 +234,7 @@ export const DynamicIslandNav: React.FC = () => {
                   <NavLink
                     to="/register"
                     className={cn(
-                      'flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-neutral-900 bg-emerald-400 hover:bg-emerald-300 transition-colors shadow-xs',
+                      'h-7.5 flex items-center justify-center px-3 rounded-xl text-xs font-semibold text-neutral-950 bg-emerald-400 hover:bg-emerald-300 transition-colors shadow-xs whitespace-nowrap shrink-0 leading-none',
                       location.pathname === '/register' && 'ring-1 ring-white'
                     )}
                     title="Create Traveler Account"
@@ -334,13 +334,13 @@ export const DynamicIslandNav: React.FC = () => {
                 </>
               ) : (
                 <>
-                  <NavLink to="/about" className="text-neutral-300 hover:text-white font-medium">
+                  <NavLink to="/about" className="text-neutral-300 hover:text-white font-medium whitespace-nowrap">
                     About
                   </NavLink>
-                  <NavLink to="/login" className="text-neutral-200 hover:text-white font-medium">
+                  <NavLink to="/login" className="text-neutral-200 hover:text-white font-medium whitespace-nowrap">
                     Sign In
                   </NavLink>
-                  <NavLink to="/register" className="text-emerald-400 font-semibold">
+                  <NavLink to="/register" className="px-3 py-1 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-neutral-950 font-semibold whitespace-nowrap text-xs">
                     Sign Up
                   </NavLink>
                 </>

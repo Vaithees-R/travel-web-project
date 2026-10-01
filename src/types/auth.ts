@@ -1,7 +1,14 @@
 /**
  * User and Authentication domain models for VoyageHub
- * Structured for frontend demo session management and easily swappable with a real auth backend.
  */
+
+export interface TravelPreferences {
+  preferred_cabin?: 'Economy' | 'Premium Economy' | 'Business';
+  preferred_transport?: 'flight' | 'train' | 'bus' | 'cab';
+  preferred_seat?: 'Window' | 'Aisle' | 'Any';
+  meal_preference?: 'Vegetarian' | 'Non-vegetarian' | 'No Preference';
+  contact_method?: 'email' | 'phone';
+}
 
 export interface User {
   id: string; // e.g. "usr_172810482"
@@ -9,6 +16,7 @@ export interface User {
   email: string;
   phone: string;
   createdAt: string; // ISO date string
+  preferences?: TravelPreferences;
 }
 
 export interface DemoStoredUser extends User {

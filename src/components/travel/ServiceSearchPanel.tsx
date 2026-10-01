@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { normalizeLocationQuery } from '../../services/travel/locations';
+import { useAuth } from '../../hooks/useAuth';
 
 export type SearchMode = 'flights' | 'trains' | 'buses' | 'cabs';
 
@@ -32,10 +33,13 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
   onSearch,
 }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Flight specifics
   const [tripType, setTripType] = useState<'oneway' | 'roundtrip'>('oneway');
-  const [cabinClass, setCabinClass] = useState('Economy');
+  const [cabinClass, setCabinClass] = useState(
+    user?.preferences?.preferred_cabin || 'Economy'
+  );
 
   // Cab specifics
   const [cabTripType, setCabTripType] = useState<'oneway' | 'roundtrip' | 'hourly'>('oneway');
@@ -66,6 +70,12 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
   const [travelers, setTravelers] = useState('1 Traveler');
   const [trainQuota, setTrainQuota] = useState('General');
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (user?.preferences?.preferred_cabin) {
+      setCabinClass(user.preferences.preferred_cabin);
+    }
+  }, [user?.preferences?.preferred_cabin]);
 
   const handleSwap = () => {
     const temp = from;
@@ -239,7 +249,7 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
 
               <select
                 value={cabinClass}
-                onChange={(e) => setCabinClass(e.target.value)}
+                onChange={(e) => setCabinClass(e.target.value as any)}
                 className="text-xs bg-neutral-100 px-3 py-1.5 rounded-xl border-none font-medium text-neutral-700 focus:ring-1 focus:ring-sky-500"
               >
                 <option value="Economy">Economy</option>

@@ -41,6 +41,7 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'paid' NOT NULL;"))
             conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50);"))
             conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(100);"))
+            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB DEFAULT '{}'::jsonb;"))
             conn.commit()
     except Exception as e:
         print(f"Database column ensure note: {e}")

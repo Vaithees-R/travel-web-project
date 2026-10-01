@@ -255,17 +255,17 @@ export const BookingConfirmationPage: React.FC = () => {
             <button
               type="button"
               onClick={handlePrint}
-              className="px-4 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-100 text-neutral-800 font-semibold text-xs transition-colors flex items-center gap-1.5"
+              className="px-4 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-100 text-neutral-800 font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-2xs"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print / Save E-Ticket</span>
+              <span>Print E-Ticket</span>
             </button>
 
             <Link
               to={`/bookings/${booking.id}`}
-              className="px-4 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-100 text-neutral-800 font-semibold text-xs transition-colors"
+              className="px-4 py-2.5 rounded-xl border border-neutral-300 hover:bg-neutral-100 text-neutral-800 font-semibold text-xs transition-colors shadow-2xs"
             >
-              Manage Booking
+              View My Trip
             </Link>
           </div>
 
@@ -281,7 +281,7 @@ export const BookingConfirmationPage: React.FC = () => {
               to="/bookings"
               className="px-5 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-semibold text-xs sm:text-sm flex items-center gap-1.5 shadow-md"
             >
-              <span>View in My Bookings</span>
+              <span>Go to My Trips</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
