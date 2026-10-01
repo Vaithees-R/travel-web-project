@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, ArrowDown, Users, Briefcase, Zap, Shield, CheckCircle2, PhoneCall } from 'lucide-react';
 import { TravelImageCarousel } from '../components/media/TravelImageCarousel';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 import { CAB_IMAGES } from '../assets/travelImages';
 
 export const CabsPage: React.FC = () => {
@@ -214,86 +215,89 @@ export const CabsPage: React.FC = () => {
 
       {/* 2. Distinct Vehicle Tiers Showcase with Real Cab Imagery */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
-            Select Your Vehicle Tier
-          </h2>
-          <p className="text-xs text-neutral-500">
-            Compare sedans, spacious outstation SUVs, electric vehicles, and executive luxury cars
-          </p>
-        </div>
+        <ScrollReveal>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
+              Select Your Vehicle Tier
+            </h2>
+            <p className="text-xs text-neutral-500">
+              Compare sedans, spacious outstation SUVs, electric vehicles, and executive luxury cars
+            </p>
+          </div>
+        </ScrollReveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {vehicleTiers.map((tier) => {
+          {vehicleTiers.map((tier, idx) => {
             const isSelected = selectedVehicle === tier.id;
             return (
-              <div
-                key={tier.id}
-                onClick={() => setSelectedVehicle(tier.id)}
-                className={`group cursor-pointer rounded-3xl p-5 border transition-all duration-200 flex flex-col justify-between ${
-                  isSelected
-                    ? 'bg-white border-indigo-600 ring-2 ring-indigo-600/20 shadow-md'
-                    : 'bg-white border-neutral-200/80 hover:border-neutral-300 shadow-xs'
-                }`}
-              >
-                <div className="space-y-3">
-                  {/* Photo container */}
-                  <div className="h-36 rounded-2xl overflow-hidden bg-neutral-100 relative">
-                    <img
-                      src={tier.image}
-                      alt={tier.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-900/80 text-white backdrop-blur-xs">
-                      {tier.badge}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="font-bold text-base text-neutral-900">{tier.name}</h3>
-                    <p className="text-xs text-neutral-500 mt-0.5">{tier.models}</p>
-                  </div>
-
-                  <div className="flex items-center gap-3 text-xs text-neutral-600 pt-1">
-                    <div className="flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-neutral-400" />
-                      <span>{tier.capacity}</span>
+              <ScrollReveal key={tier.id} delayMs={idx * 90}>
+                <div
+                  onClick={() => setSelectedVehicle(tier.id)}
+                  className={`group cursor-pointer rounded-3xl p-5 border transition-all duration-200 flex flex-col justify-between h-full ${
+                    isSelected
+                      ? 'bg-white border-indigo-600 ring-2 ring-indigo-600/20 shadow-md'
+                      : 'bg-white border-neutral-200/80 hover:border-neutral-300 shadow-xs'
+                  }`}
+                >
+                  <div className="space-y-3">
+                    {/* Photo container */}
+                    <div className="h-36 rounded-2xl overflow-hidden bg-neutral-100 relative">
+                      <img
+                        src={tier.image}
+                        alt={tier.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-900/80 text-white backdrop-blur-xs">
+                        {tier.badge}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Briefcase className="w-3.5 h-3.5 text-neutral-400" />
-                      <span>{tier.luggage}</span>
-                    </div>
-                  </div>
 
-                  <div className="pt-2 border-t border-neutral-100 space-y-1">
-                    {tier.features.slice(0, 3).map((f) => (
-                      <div key={f} className="flex items-center gap-1.5 text-[11px] text-neutral-600">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                        <span>{f}</span>
+                    <div>
+                      <h3 className="font-bold text-base text-neutral-900">{tier.name}</h3>
+                      <p className="text-xs text-neutral-500 mt-0.5">{tier.models}</p>
+                    </div>
+
+                    <div className="flex items-center gap-3 text-xs text-neutral-600 pt-1">
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>{tier.capacity}</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                      <div className="flex items-center gap-1">
+                        <Briefcase className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>{tier.luggage}</span>
+                      </div>
+                    </div>
 
-                <div className="pt-4 border-t border-neutral-100 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-neutral-400 block">Starting from</span>
-                    <span className="text-base font-bold text-neutral-900">
-                      ₹{tier.priceOneway.toLocaleString('en-IN')}
-                    </span>
+                    <div className="pt-2 border-t border-neutral-100 space-y-1">
+                      {tier.features.slice(0, 3).map((f) => (
+                        <div key={f} className="flex items-center gap-1.5 text-[11px] text-neutral-600">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <span>{f}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-                      isSelected
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800'
-                    }`}
-                  >
-                    {isSelected ? 'Selected' : 'Select'}
-                  </button>
+
+                  <div className="pt-4 border-t border-neutral-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-neutral-400 block">Starting from</span>
+                      <span className="text-base font-bold text-neutral-900">
+                        ₹{tier.priceOneway.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white'
+                          : 'bg-neutral-100 hover:bg-neutral-200 text-neutral-800'
+                      }`}
+                    >
+                      {isSelected ? 'Selected' : 'Select'}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </ScrollReveal>
             );
           })}
         </div>
@@ -301,77 +305,82 @@ export const CabsPage: React.FC = () => {
 
       {/* 3. Popular Outstation & Airport Corridors */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
-            Popular Outstation & Airport Transfers
-          </h2>
-          <p className="text-xs text-neutral-500">
-            Fixed transparent pricing on heavy commercial and airport highway corridors
-          </p>
-        </div>
+        <ScrollReveal>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
+              Popular Outstation & Airport Transfers
+            </h2>
+            <p className="text-xs text-neutral-500">
+              Fixed transparent pricing on heavy commercial and airport highway corridors
+            </p>
+          </div>
+        </ScrollReveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {popularRoutes.map((route, i) => (
-            <div
-              key={i}
-              onClick={() => navigate(`/cabs/results?from=${encodeURIComponent(route.from)}&to=${encodeURIComponent(route.to)}`)}
-              className="p-5 bg-white border border-neutral-200/80 rounded-2xl shadow-xs hover:border-indigo-400 cursor-pointer transition-colors flex flex-col justify-between space-y-3"
-            >
-              <div className="space-y-1.5">
-                <div className="text-xs font-semibold text-neutral-900">
-                  {route.from}
+            <ScrollReveal key={i} delayMs={Math.min(i * 80, 240)}>
+              <div
+                onClick={() => navigate(`/cabs/results?from=${encodeURIComponent(route.from)}&to=${encodeURIComponent(route.to)}`)}
+                className="p-5 bg-white border border-neutral-200/80 rounded-2xl shadow-xs hover:border-indigo-400 cursor-pointer transition-colors flex flex-col justify-between space-y-3 h-full"
+              >
+                <div className="space-y-1.5">
+                  <div className="text-xs font-semibold text-neutral-900">
+                    {route.from}
+                  </div>
+                  <div className="text-[11px] text-neutral-400 flex items-center gap-1">
+                    <span>↓</span>
+                    <span>{route.distance} • {route.duration}</span>
+                  </div>
+                  <div className="text-xs font-semibold text-indigo-900">
+                    {route.to}
+                  </div>
                 </div>
-                <div className="text-[11px] text-neutral-400 flex items-center gap-1">
-                  <span>↓</span>
-                  <span>{route.distance} • {route.duration}</span>
-                </div>
-                <div className="text-xs font-semibold text-indigo-900">
-                  {route.to}
-                </div>
-              </div>
 
-              <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
-                <span className="text-neutral-500">One-way from</span>
-                <span className="font-bold text-neutral-900">₹{route.startingPrice}</span>
+                <div className="pt-2 border-t border-neutral-100 flex items-center justify-between text-xs">
+                  <span className="text-neutral-500">One-way from</span>
+                  <span className="font-bold text-neutral-900">₹{route.startingPrice}</span>
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
 
         {/* Chauffeur Guarantees Banner */}
-        <section className="bg-neutral-900 text-white rounded-3xl p-6 sm:p-8 mt-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-neutral-800 text-emerald-400 flex items-center justify-center font-bold">
-                <Shield className="w-4 h-4" />
+        <ScrollReveal delayMs={100}>
+          <section className="bg-neutral-900 text-white rounded-3xl p-6 sm:p-8 mt-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-neutral-800 text-emerald-400 flex items-center justify-center font-bold">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <h4 className="font-semibold text-sm text-white">Zero Hidden Charges</h4>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Toll taxes, state road taxes, fuel, driver night allowances, and parking fees are calculated upfront before you book.
+                </p>
               </div>
-              <h4 className="font-semibold text-sm text-white">Zero Hidden Charges</h4>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Toll taxes, state road taxes, fuel, driver night allowances, and parking fees are calculated upfront before you book.
-              </p>
-            </div>
 
-            <div className="space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-neutral-800 text-emerald-400 flex items-center justify-center font-bold">
-                <Zap className="w-4 h-4" />
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-neutral-800 text-emerald-400 flex items-center justify-center font-bold">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <h4 className="font-semibold text-sm text-white">Live Flight Delay Tracking</h4>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  For airport pickups, enter your flight number. Your chauffeur adjusts pickup time automatically with zero waiting penalty.
+                </p>
               </div>
-              <h4 className="font-semibold text-sm text-white">Live Flight Delay Tracking</h4>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                For airport pickups, enter your flight number. Your chauffeur adjusts pickup time automatically with zero waiting penalty.
-              </p>
-            </div>
 
-            <div className="space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-neutral-800 text-emerald-400 flex items-center justify-center font-bold">
-                <PhoneCall className="w-4 h-4" />
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-neutral-800 text-emerald-400 flex items-center justify-center font-bold">
+                  <PhoneCall className="w-4 h-4" />
+                </div>
+                <h4 className="font-semibold text-sm text-white">Verified Professional Drivers</h4>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Every driver is background-checked and evaluated for defensive highway driving and professional customer courtesy.
+                </p>
               </div>
-              <h4 className="font-semibold text-sm text-white">Verified Professional Drivers</h4>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Every driver is background-checked and evaluated for defensive highway driving and professional customer courtesy.
-              </p>
             </div>
-          </div>
-        </section>
+          </section>
+        </ScrollReveal>
       </div>
     </div>
   );

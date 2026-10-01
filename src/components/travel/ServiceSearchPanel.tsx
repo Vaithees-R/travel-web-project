@@ -4,7 +4,6 @@ import {
   ArrowLeftRight,
   Calendar,
   Users,
-  MapPin,
   Search,
   Train,
   Bus,
@@ -14,6 +13,7 @@ import {
 import { cn } from '../../utils/cn';
 import { normalizeLocationQuery } from '../../services/travel/locations';
 import { useAuth } from '../../hooks/useAuth';
+import { LocationSelector } from '../search/LocationSelector';
 
 export type SearchMode = 'flights' | 'trains' | 'buses' | 'cabs';
 
@@ -143,64 +143,6 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
     }
   };
 
-  // Preset location suggestions for datalists
-  const flightSuggestions = [
-    'Delhi (DEL)',
-    'Mumbai (BOM)',
-    'Bengaluru (BLR)',
-    'Chennai (MAA)',
-    'Hyderabad (HYD)',
-    'Goa (GOI)',
-    'Dubai (DXB)',
-    'Singapore (SIN)',
-    'London (LHR)',
-    'Bangkok (BKK)',
-  ];
-
-  const trainSuggestions = [
-    'New Delhi (NDLS)',
-    'Mumbai Central (MMCT)',
-    'Varanasi (BSB)',
-    'Chennai (MAS)',
-    'Bengaluru (SBC)',
-    'Bhopal (RKMP)',
-    'Kolkata (SDAH)',
-    'Ahmedabad (ADI)',
-    'Hyderabad (HYB)',
-  ];
-
-  const busSuggestions = [
-    'Bengaluru',
-    'Chennai',
-    'Mumbai',
-    'Goa',
-    'Delhi',
-    'Chandigarh',
-    'Hyderabad',
-    'Madurai',
-    'Mysuru',
-  ];
-
-  const cabSuggestions = [
-    'Mumbai',
-    'Pune',
-    'Bengaluru',
-    'Mysuru',
-    'Delhi',
-    'Agra',
-    'Chennai',
-    'Pondicherry',
-  ];
-
-  const suggestions =
-    mode === 'flights'
-      ? flightSuggestions
-      : mode === 'trains'
-      ? trainSuggestions
-      : mode === 'buses'
-      ? busSuggestions
-      : cabSuggestions;
-
   return (
     <div
       className={cn(
@@ -208,13 +150,6 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
         className
       )}
     >
-      {/* Hidden Datalist for Autocomplete Suggestions */}
-      <datalist id={`location-suggestions-${mode}`}>
-        {suggestions.map((s) => (
-          <option key={s} value={s} />
-        ))}
-      </datalist>
-
       <form onSubmit={handleSearchSubmit} className="space-y-4">
         {/* Top Controls Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-neutral-100">
@@ -357,60 +292,49 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
 
         {/* Input Fields Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-          {/* Origin & Destination with Swap */}
-          <div className="md:col-span-6 relative grid grid-cols-1 sm:grid-cols-2 gap-2 p-1 bg-neutral-50 rounded-2xl border border-neutral-200/80">
+          {/* Origin & Destination with Searchable Location Selector and Animated Swap */}
+          <div className="md:col-span-6 relative grid grid-cols-1 sm:grid-cols-2 gap-2 p-1.5 bg-neutral-50/90 rounded-2xl border border-neutral-200/80 transition-all duration-200 focus-within:border-neutral-400 focus-within:shadow-xs">
             {/* From */}
-            <div className="p-2.5 sm:p-3">
-              <label className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-0.5">
-                {mode === 'cabs' ? 'Pickup Location' : mode === 'trains' ? 'From Station' : 'From'}
-              </label>
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                <input
-                  type="text"
-                  list={`location-suggestions-${mode}`}
-                  value={from}
-                  onChange={(e) => {
-                    setFrom(e.target.value);
-                    if (validationError) setValidationError(null);
-                  }}
-                  className="w-full text-xs sm:text-sm font-semibold text-neutral-900 bg-transparent focus:outline-none"
-                  placeholder="Enter origin"
-                />
-              </div>
+            <div className="p-2 sm:p-2.5">
+              <LocationSelector
+                id={`search-from-${mode}`}
+                label={mode === 'cabs' ? 'Pickup Location / City' : mode === 'trains' ? 'From Station' : 'From'}
+                value={from}
+                onChange={(newVal) => {
+                  setFrom(newVal);
+                  if (validationError) setValidationError(null);
+                }}
+                mode={mode}
+                disabledValue={to}
+                placeholder={mode === 'cabs' ? 'Select pickup city' : 'Select origin'}
+              />
             </div>
 
-            {/* Swap Button */}
+            {/* Swap Button with Smooth Micro-Interaction */}
             <button
               type="button"
               onClick={handleSwap}
               aria-label="Swap origin and destination"
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-neutral-300 shadow-xs text-neutral-600 hover:text-neutral-900 hover:border-neutral-400 flex items-center justify-center transition-transform hover:rotate-180 focus-ring cursor-pointer"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-white border border-neutral-300 shadow-xs text-neutral-600 hover:text-neutral-900 hover:border-neutral-400 flex items-center justify-center transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:rotate-180 focus-ring cursor-pointer"
               title="Swap Origin and Destination"
             >
-              <ArrowLeftRight className="w-3.5 h-3.5" aria-hidden="true" />
+              <ArrowLeftRight className="w-3.5 h-3.5 transition-transform duration-300" aria-hidden="true" />
             </button>
 
-
             {/* To */}
-            <div className="p-2.5 sm:p-3 sm:border-l sm:border-neutral-200">
-              <label className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-0.5">
-                {mode === 'cabs' ? 'Drop Location' : mode === 'trains' ? 'To Station' : 'To'}
-              </label>
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-                <input
-                  type="text"
-                  list={`location-suggestions-${mode}`}
-                  value={to}
-                  onChange={(e) => {
-                    setTo(e.target.value);
-                    if (validationError) setValidationError(null);
-                  }}
-                  className="w-full text-xs sm:text-sm font-semibold text-neutral-900 bg-transparent focus:outline-none"
-                  placeholder="Enter destination"
-                />
-              </div>
+            <div className="p-2 sm:p-2.5 sm:border-l sm:border-neutral-200">
+              <LocationSelector
+                id={`search-to-${mode}`}
+                label={mode === 'cabs' ? 'Drop Location / City' : mode === 'trains' ? 'To Station' : 'To'}
+                value={to}
+                onChange={(newVal) => {
+                  setTo(newVal);
+                  if (validationError) setValidationError(null);
+                }}
+                mode={mode}
+                disabledValue={from}
+                placeholder={mode === 'cabs' ? 'Select drop city' : 'Select destination'}
+              />
             </div>
           </div>
 
@@ -418,10 +342,10 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
           <div
             className={cn(
               tripType === 'roundtrip' && mode === 'flights' ? 'md:col-span-3' : 'md:col-span-3',
-              'p-3 bg-neutral-50 rounded-2xl border border-neutral-200/80'
+              'p-3 bg-neutral-50/90 rounded-2xl border border-neutral-200/80 transition-all duration-200 focus-within:border-neutral-400 focus-within:shadow-xs'
             )}
           >
-            <label className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-0.5">
+            <label htmlFor={`travel-date-${mode}`} className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-0.5 cursor-pointer">
               {mode === 'cabs'
                 ? 'Pickup Date & Time'
                 : tripType === 'roundtrip'
@@ -429,8 +353,9 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
                 : 'Travel Date'}
             </label>
             <div className="flex items-center gap-2">
-              <Calendar className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+              <Calendar className="w-3.5 h-3.5 text-neutral-400 shrink-0" aria-hidden="true" />
               <input
+                id={`travel-date-${mode}`}
                 type="text"
                 value={travelDate}
                 onChange={(e) => setTravelDate(e.target.value)}
@@ -441,13 +366,14 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
 
           {/* Passenger / Class / Search CTA */}
           <div className="md:col-span-3 flex items-center gap-2">
-            <div className="flex-1 p-3 bg-neutral-50 rounded-2xl border border-neutral-200/80">
-              <label className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-0.5">
+            <div className="flex-1 p-3 bg-neutral-50/90 rounded-2xl border border-neutral-200/80 transition-all duration-200 focus-within:border-neutral-400 focus-within:shadow-xs">
+              <label htmlFor={`travelers-input-${mode}`} className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider block mb-0.5 cursor-pointer">
                 Travelers
               </label>
               <div className="flex items-center gap-1.5">
-                <Users className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                <Users className="w-3.5 h-3.5 text-neutral-400 shrink-0" aria-hidden="true" />
                 <input
+                  id={`travelers-input-${mode}`}
                   type="text"
                   value={travelers}
                   onChange={(e) => setTravelers(e.target.value)}
@@ -460,7 +386,7 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
               type="submit"
               aria-label={`Search ${mode}`}
               className={cn(
-                'h-[58px] px-5 rounded-2xl text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md shrink-0 cursor-pointer focus-ring',
+                'h-[58px] px-5 rounded-2xl text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-200 shadow-md shrink-0 cursor-pointer focus-ring hover:scale-[1.02] active:scale-[0.98]',
                 mode === 'flights' && 'bg-sky-600 hover:bg-sky-700 shadow-sky-600/20',
                 mode === 'trains' && 'bg-amber-700 hover:bg-amber-800 shadow-amber-700/20',
                 mode === 'buses' && 'bg-emerald-700 hover:bg-emerald-800 shadow-emerald-700/20',
@@ -470,7 +396,6 @@ export const ServiceSearchPanel: React.FC<ServiceSearchPanelProps> = ({
               <Search className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:inline">Search</span>
             </button>
-
           </div>
         </div>
 

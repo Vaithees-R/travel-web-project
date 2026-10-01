@@ -24,7 +24,7 @@ export const MOCK_BUSES: TravelOption[] = [
     rating: 4.8,
     image: BUS_IMAGES[0]?.src,
     busType: 'AC Sleeper (2+1)',
-    amenities: ['Private Curtains', 'Type-C Fast Charging', 'Fresh Blanket & Pillow', 'Live GPS Tracking', 'Lounge Access'],
+    amenities: ['Private Curtains', 'Type-C Fast Charging', 'Fresh Blanket & Pillow', 'Route Visibility', 'Lounge Access'],
   },
   {
     id: 'bus-blr-maa-2',
@@ -142,7 +142,7 @@ export const MOCK_BUSES: TravelOption[] = [
     rating: 4.5,
     image: BUS_IMAGES[2]?.src,
     busType: 'AC Sleeper (2+1)',
-    amenities: ['Individual Reading Lights', 'Soft Blanket', 'Punctual Dispatch', 'Live Tracking'],
+    amenities: ['Individual Reading Lights', 'Soft Blanket', 'Punctual Dispatch', 'Planned Route Tracking'],
   },
   // Chennai to Madurai
   {

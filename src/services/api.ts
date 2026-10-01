@@ -9,24 +9,35 @@ const TOKEN_STORAGE_KEY = 'voyagehub_jwt_token';
  * In production environments requiring high security, httpOnly secure cookies are recommended
  * to mitigate XSS risks.
  */
+let inMemoryToken: string | null = null;
+
 export const tokenStorage = {
   get: (): string | null => {
     try {
-      return localStorage.getItem(TOKEN_STORAGE_KEY);
+      if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem(TOKEN_STORAGE_KEY);
+      }
+      return inMemoryToken;
     } catch {
-      return null;
+      return inMemoryToken;
     }
   },
   set: (token: string): void => {
+    inMemoryToken = token;
     try {
-      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      }
     } catch (e) {
       console.error('Failed to store authentication token', e);
     }
   },
   clear: (): void => {
+    inMemoryToken = null;
     try {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+      }
     } catch {}
   },
 };

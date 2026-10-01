@@ -25,7 +25,13 @@ def book_journey(
     CRITICAL: user_id is extracted strictly from the validated JWT token of current_user.
     Frontend user_id inputs are NEVER trusted.
     """
-    return create_booking(db, user_id=current_user.id, data=data)
+    try:
+        return create_booking(db, user_id=current_user.id, data=data)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
 @router.get("", response_model=List[BookingRead])
 def list_user_bookings(

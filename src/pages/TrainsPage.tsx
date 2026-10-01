@@ -5,6 +5,7 @@ import { TravelImageCarousel } from '../components/media/TravelImageCarousel';
 import { TrainJourneyTimeline } from '../components/travel/TrainJourneyTimeline';
 import { ServiceSearchPanel } from '../components/travel/ServiceSearchPanel';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 import { TRAIN_IMAGES } from '../assets/travelImages';
 
 export const TrainsPage: React.FC = () => {
@@ -134,7 +135,7 @@ export const TrainsPage: React.FC = () => {
               </h1>
               <p className="text-sm sm:text-base text-stone-300 max-w-lg leading-relaxed">
                 Book berths across Vande Bharat, Rajdhani, Shatabdi, and Express trains. 
-                Complete station codes, real-time schedule schematics, and IRCTC quota selections.
+                Complete station codes, detailed route schematics, and IRCTC quota selections.
               </p>
               <div className="flex items-center gap-4 text-xs text-stone-400 pt-1">
                 <span>✓ Official Station Codes</span>
@@ -174,106 +175,111 @@ export const TrainsPage: React.FC = () => {
       {/* 3. Railway Timelines Showcase */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Filter Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200/80 pb-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-stone-900 tracking-tight">
-              Featured Railway Express Schedules
-            </h2>
-            <p className="text-xs text-stone-500">
-              Interactive track schematics showing departure, platform progress, and destination arrival
-            </p>
-          </div>
+        <ScrollReveal>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200/80 pb-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-stone-900 tracking-tight">
+                Featured Railway Express Schedules
+              </h2>
+              <p className="text-xs text-stone-500">
+                Interactive track schematics showing departure, platform progress, and destination arrival
+              </p>
+            </div>
 
-          <div className="flex items-center gap-2 bg-stone-100 p-1 rounded-xl text-xs font-medium self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setActiveFilter('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'all' ? 'bg-white text-stone-900 shadow-xs font-semibold' : 'text-stone-600 hover:text-stone-900'}`}
-            >
-              All Trains
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFilter('vande-bharat')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'vande-bharat' ? 'bg-white text-stone-900 shadow-xs font-semibold' : 'text-stone-600 hover:text-stone-900'}`}
-            >
-              Vande Bharat
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFilter('rajdhani')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'rajdhani' ? 'bg-white text-stone-900 shadow-xs font-semibold' : 'text-stone-600 hover:text-stone-900'}`}
-            >
-              Rajdhani & Duronto
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveFilter('shatabdi')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'shatabdi' ? 'bg-white text-stone-900 shadow-xs font-semibold' : 'text-stone-600 hover:text-stone-900'}`}
-            >
-              Shatabdi & Tejas
-            </button>
+            <div className="flex items-center gap-2 bg-stone-100 p-1 rounded-xl text-xs font-medium self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setActiveFilter('all')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'all' ? 'bg-white text-stone-900 shadow-xs font-semibold' : 'text-stone-600 hover:text-stone-900'}`}
+              >
+                All Trains
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveFilter('vande-bharat')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'vande-bharat' ? 'bg-white text-stone-900 shadow-xs font-semibold' : 'text-stone-600 hover:text-stone-900'}`}
+              >
+                Vande Bharat
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveFilter('rajdhani')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'rajdhani' ? 'bg-white text-stone-900 shadow-xs font-semibold' : 'text-stone-600 hover:text-stone-900'}`}
+              >
+                Rajdhani & Duronto
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveFilter('shatabdi')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${activeFilter === 'shatabdi' ? 'bg-white text-stone-900 shadow-xs font-semibold' : 'text-stone-600 hover:text-stone-900'}`}
+              >
+                Shatabdi & Tejas
+              </button>
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* Train Journey Timelines Stack */}
         <div className="space-y-5">
-          {filteredTrains.map((train) => (
-            <TrainJourneyTimeline
-              key={train.id}
-              trainNumber={train.id}
-              trainName={train.name}
-              trainType={train.type}
-              originCity={train.originCity}
-              originCode={train.originCode}
-              destinationCity={train.destinationCity}
-              destinationCode={train.destinationCode}
-              departureTime={train.departureTime}
-              arrivalTime={train.arrivalTime}
-              duration={train.duration}
-              runsOn={train.runsOn}
-              classTypes={train.classTypes}
-              startingFare={train.startingPrice}
-              availableSeats={train.availableSeats}
-              onSelect={() => navigate(`/trains/results?from=${encodeURIComponent(train.originCity)}&to=${encodeURIComponent(train.destinationCity)}`)}
-            />
+          {filteredTrains.map((train, idx) => (
+            <ScrollReveal key={train.id} delayMs={Math.min(idx * 80, 320)}>
+              <TrainJourneyTimeline
+                trainNumber={train.id}
+                trainName={train.name}
+                trainType={train.type}
+                originCity={train.originCity}
+                originCode={train.originCode}
+                destinationCity={train.destinationCity}
+                destinationCode={train.destinationCode}
+                departureTime={train.departureTime}
+                arrivalTime={train.arrivalTime}
+                duration={train.duration}
+                runsOn={train.runsOn}
+                classTypes={train.classTypes}
+                startingFare={train.startingPrice}
+                availableSeats={train.availableSeats}
+                onSelect={() => navigate(`/trains/results?from=${encodeURIComponent(train.originCity)}&to=${encodeURIComponent(train.destinationCity)}`)}
+              />
+            </ScrollReveal>
           ))}
         </div>
 
         {/* Railway Station Code & PNR Information Block */}
-        <section className="bg-amber-50/70 border border-amber-200/80 rounded-3xl p-6 sm:p-8 mt-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
-                <Ticket className="w-4 h-4" />
+        <ScrollReveal delayMs={100}>
+          <section className="bg-amber-50/70 border border-amber-200/80 rounded-3xl p-6 sm:p-8 mt-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                  <Ticket className="w-4 h-4" />
+                </div>
+                <h4 className="font-semibold text-sm text-stone-900">10-Digit IRCTC PNR Sync</h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Enter your 10-digit Passenger Name Record into your VoyageHub traveler itinerary to receive live coach & berth charting updates.
+                </p>
               </div>
-              <h4 className="font-semibold text-sm text-stone-900">10-Digit IRCTC PNR Sync</h4>
-              <p className="text-xs text-stone-600 leading-relaxed">
-                Enter your 10-digit Passenger Name Record into your VoyageHub traveler itinerary to receive live coach & berth charting updates.
-              </p>
-            </div>
 
-            <div className="space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
-                <Clock className="w-4 h-4" />
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <h4 className="font-semibold text-sm text-stone-900">Tatkal Booking Windows</h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  AC classes open at 10:00 AM IST and Non-AC classes open at 11:00 AM IST one day prior to the train’s originating station departure.
+                </p>
               </div>
-              <h4 className="font-semibold text-sm text-stone-900">Tatkal Booking Windows</h4>
-              <p className="text-xs text-stone-600 leading-relaxed">
-                AC classes open at 10:00 AM IST and Non-AC classes open at 11:00 AM IST one day prior to the train’s originating station departure.
-              </p>
-            </div>
 
-            <div className="space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
-                <ShieldCheck className="w-4 h-4" />
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <h4 className="font-semibold text-sm text-stone-900">Coach Classes Explained</h4>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  Executive Chair Car (EC), AC Chair Car (CC), First AC (1A), 2-Tier AC (2A), 3-Tier AC (3A), and Sleeper (SL) verified directly from Indian Railway charts.
+                </p>
               </div>
-              <h4 className="font-semibold text-sm text-stone-900">Coach Classes Explained</h4>
-              <p className="text-xs text-stone-600 leading-relaxed">
-                Executive Chair Car (EC), AC Chair Car (CC), First AC (1A), 2-Tier AC (2A), 3-Tier AC (3A), and Sleeper (SL) verified directly from Indian Railway charts.
-              </p>
             </div>
-          </div>
-        </section>
+          </section>
+        </ScrollReveal>
       </div>
     </div>
   );

@@ -42,9 +42,10 @@ async def lifespan(app: FastAPI):
             conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_method VARCHAR(50);"))
             conn.execute(text("ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(100);"))
             conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS preferences JSONB DEFAULT '{}'::jsonb;"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_bookings_user_id_created_at ON bookings (user_id, created_at DESC);"))
             conn.commit()
     except Exception as e:
-        print(f"Database column ensure note: {e}")
+        print(f"Database schema ensure note: {e}")
     seed_default_traveler()
     yield
 
@@ -56,6 +57,16 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan,
 )
+
+# Standard Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 # CORS Configuration for development frontend
 app.add_middleware(

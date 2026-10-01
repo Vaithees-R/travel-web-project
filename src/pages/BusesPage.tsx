@@ -5,6 +5,7 @@ import { TravelImageCarousel } from '../components/media/TravelImageCarousel';
 import { BusRouteTimeline } from '../components/travel/BusRouteTimeline';
 import { ServiceSearchPanel } from '../components/travel/ServiceSearchPanel';
 import { TransportBadge } from '../components/ui/TransportBadge';
+import { ScrollReveal } from '../components/common/ScrollReveal';
 import { BUS_IMAGES } from '../assets/travelImages';
 
 export const BusesPage: React.FC = () => {
@@ -26,7 +27,7 @@ export const BusesPage: React.FC = () => {
       fare: 850,
       rating: 4.8,
       availableSeats: 12,
-      amenities: ['Private Curtains', 'Type-C Fast Charging', 'Blanket & Pillow', 'Live GPS Tracking'],
+      amenities: ['Private Curtains', 'Type-C Fast Charging', 'Blanket & Pillow', 'Route Visibility'],
     },
     {
       operator: 'KSRTC Airawat Club Class',
@@ -90,7 +91,7 @@ export const BusesPage: React.FC = () => {
       fare: 950,
       rating: 4.5,
       availableSeats: 15,
-      amenities: ['Individual Reading Lights', 'Blanket', 'Punctual Dispatch', 'Live Tracking'],
+      amenities: ['Individual Reading Lights', 'Blanket', 'Punctual Dispatch', 'Journey Tracking'],
     },
     {
       operator: 'Orange Tours & Travels',
@@ -132,7 +133,7 @@ export const BusesPage: React.FC = () => {
               <div className="flex items-center gap-4 text-xs text-emerald-300/80 pt-1">
                 <span>✓ Standardized Boarding Lounges</span>
                 <span>•</span>
-                <span>✓ Real-time GPS Location</span>
+                <span>✓ Planned Route Tracking</span>
                 <span>•</span>
                 <span>✓ Verified Drivers</span>
               </div>
@@ -167,105 +168,110 @@ export const BusesPage: React.FC = () => {
       {/* 3. Horizontal Journey Visualizations Showcase */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Filter Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200/80 pb-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
-              Featured Intercity Highway Corridors
-            </h2>
-            <p className="text-xs text-neutral-500">
-              Clear boarding point to dropping point horizontal journey visualizations
-            </p>
-          </div>
+        <ScrollReveal>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-200/80 pb-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 tracking-tight">
+                Featured Intercity Highway Corridors
+              </h2>
+              <p className="text-xs text-neutral-500">
+                Clear boarding point to dropping point horizontal journey visualizations
+              </p>
+            </div>
 
-          <div className="flex items-center gap-2 bg-neutral-100 p-1 rounded-xl text-xs font-medium self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setFilterCategory('all')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${filterCategory === 'all' ? 'bg-white text-neutral-900 shadow-xs font-semibold' : 'text-neutral-600 hover:text-neutral-900'}`}
-            >
-              All Coaches
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterCategory('sleeper')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${filterCategory === 'sleeper' ? 'bg-white text-neutral-900 shadow-xs font-semibold' : 'text-neutral-600 hover:text-neutral-900'}`}
-            >
-              AC Sleepers
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterCategory('seater')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${filterCategory === 'seater' ? 'bg-white text-neutral-900 shadow-xs font-semibold' : 'text-neutral-600 hover:text-neutral-900'}`}
-            >
-              Semi-Sleepers
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterCategory('electric')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${filterCategory === 'electric' ? 'bg-white text-neutral-900 shadow-xs font-semibold' : 'text-neutral-600 hover:text-neutral-900'}`}
-            >
-              Electric EV
-            </button>
+            <div className="flex items-center gap-2 bg-neutral-100 p-1 rounded-xl text-xs font-medium self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setFilterCategory('all')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${filterCategory === 'all' ? 'bg-white text-neutral-900 shadow-xs font-semibold' : 'text-neutral-600 hover:text-neutral-900'}`}
+              >
+                All Coaches
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterCategory('sleeper')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${filterCategory === 'sleeper' ? 'bg-white text-neutral-900 shadow-xs font-semibold' : 'text-neutral-600 hover:text-neutral-900'}`}
+              >
+                AC Sleepers
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterCategory('seater')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${filterCategory === 'seater' ? 'bg-white text-neutral-900 shadow-xs font-semibold' : 'text-neutral-600 hover:text-neutral-900'}`}
+              >
+                Semi-Sleepers
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterCategory('electric')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${filterCategory === 'electric' ? 'bg-white text-neutral-900 shadow-xs font-semibold' : 'text-neutral-600 hover:text-neutral-900'}`}
+              >
+                Electric EV
+              </button>
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
 
         {/* Horizontal Bus Route Timelines Stack */}
         <div className="space-y-4">
           {filteredRoutes.map((route, idx) => (
-            <BusRouteTimeline
-              key={`${route.operator}-${idx}`}
-              operator={route.operator}
-              busType={route.busType}
-              departureCity={route.departureCity}
-              boardingPoint={route.boardingPoint}
-              departureTime={route.departureTime}
-              arrivalCity={route.arrivalCity}
-              droppingPoint={route.droppingPoint}
-              arrivalTime={route.arrivalTime}
-              duration={route.duration}
-              fare={route.fare}
-              rating={route.rating}
-              availableSeats={route.availableSeats}
-              amenities={route.amenities}
-              onSelect={() => navigate(`/buses/results?from=${encodeURIComponent(route.departureCity)}&to=${encodeURIComponent(route.arrivalCity)}`)}
-            />
+            <ScrollReveal key={`${route.operator}-${idx}`} delayMs={Math.min(idx * 80, 320)}>
+              <BusRouteTimeline
+                operator={route.operator}
+                busType={route.busType}
+                departureCity={route.departureCity}
+                boardingPoint={route.boardingPoint}
+                departureTime={route.departureTime}
+                arrivalCity={route.arrivalCity}
+                droppingPoint={route.droppingPoint}
+                arrivalTime={route.arrivalTime}
+                duration={route.duration}
+                fare={route.fare}
+                rating={route.rating}
+                availableSeats={route.availableSeats}
+                amenities={route.amenities}
+                onSelect={() => navigate(`/buses/results?from=${encodeURIComponent(route.departureCity)}&to=${encodeURIComponent(route.arrivalCity)}`)}
+              />
+            </ScrollReveal>
           ))}
         </div>
 
         {/* Bus Cabin & Safety Information Block */}
-        <section className="bg-emerald-50/70 border border-emerald-200/80 rounded-3xl p-6 sm:p-8 mt-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-                <Navigation className="w-4 h-4" />
+        <ScrollReveal delayMs={100}>
+          <section className="bg-emerald-50/70 border border-emerald-200/80 rounded-3xl p-6 sm:p-8 mt-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <Navigation className="w-4 h-4" />
+                </div>
+                <h4 className="font-semibold text-sm text-neutral-900">Planned Journey Tracking</h4>
+                <p className="text-xs text-neutral-600 leading-relaxed">
+                  Access scheduled route details and estimated travel times for your boarding point, minimizing waiting time at highways and terminals.
+                </p>
               </div>
-              <h4 className="font-semibold text-sm text-neutral-900">Live GPS Bus Tracking</h4>
-              <p className="text-xs text-neutral-600 leading-relaxed">
-                Track your bus location in real-time as it approaches your boarding point, minimizing waiting time at highways and terminals.
-              </p>
-            </div>
 
-            <div className="space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-                <Sparkles className="w-4 h-4" />
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <h4 className="font-semibold text-sm text-neutral-900">AC Sleeper 2+1 Layout</h4>
+                <p className="text-xs text-neutral-600 leading-relaxed">
+                  Single window berths on the left for solo travelers, and double berths on the right for couples and families with privacy curtains.
+                </p>
               </div>
-              <h4 className="font-semibold text-sm text-neutral-900">AC Sleeper 2+1 Layout</h4>
-              <p className="text-xs text-neutral-600 leading-relaxed">
-                Single window berths on the left for solo travelers, and double berths on the right for couples and families with privacy curtains.
-              </p>
-            </div>
 
-            <div className="space-y-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
-                <Shield className="w-4 h-4" />
+              <div className="space-y-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <h4 className="font-semibold text-sm text-neutral-900">Verified Highway Rest Stops</h4>
+                <p className="text-xs text-neutral-600 leading-relaxed">
+                  Scheduled halts only at vetted highway food courts with sanitized restrooms and 24/7 security.
+                </p>
               </div>
-              <h4 className="font-semibold text-sm text-neutral-900">Verified Highway Rest Stops</h4>
-              <p className="text-xs text-neutral-600 leading-relaxed">
-                Scheduled halts only at vetted highway food courts with sanitized restrooms and 24/7 security.
-              </p>
             </div>
-          </div>
-        </section>
+          </section>
+        </ScrollReveal>
       </div>
     </div>
   );

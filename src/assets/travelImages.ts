@@ -87,7 +87,7 @@ export const BUS_IMAGES: TravelImageItem[] = [
   { src: bus5, alt: 'Comfortable passenger coach bus', title: 'Regional Highway Routes', subtitle: 'Reaching deep into town hubs where trains have limited access' },
   { src: bus6, alt: 'Night travel AC sleeper bus', title: 'Overnight City Links', subtitle: 'Board in the evening, wake up at your destination' },
   { src: bus7, alt: 'Modern long-distance coach', title: 'Multi-Axle Air Suspension', subtitle: 'Smoother journeys on India’s national expressways' },
-  { src: bus8, alt: 'Interstate passenger coach', title: 'Verified Highway Operators', subtitle: 'Punctual boarding lounges and live GPS tracking' }
+  { src: bus8, alt: 'Interstate passenger coach', title: 'Verified Highway Operators', subtitle: 'Punctual boarding lounges and planned route tracking' }
 ];
 
 export const CAB_IMAGES: TravelImageItem[] = [

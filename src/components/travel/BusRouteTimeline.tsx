@@ -33,7 +33,7 @@ export const BusRouteTimeline: React.FC<BusRouteTimelineProps> = ({
   fare,
   rating = 4.7,
   availableSeats = 18,
-  amenities = ['Live GPS', 'Charging Port', 'Reading Lamp', 'Water Bottle'],
+  amenities = ['Route Tracking', 'Charging Port', 'Reading Lamp', 'Water Bottle'],
   className,
   onSelect,
 }) => {

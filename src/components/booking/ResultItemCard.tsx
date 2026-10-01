@@ -38,7 +38,7 @@ export const ResultItemCard: React.FC<ResultItemCardProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-3xl border border-neutral-200/90 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden ${className}`}
+      className={`bg-white rounded-3xl border border-neutral-200/90 shadow-xs hover:shadow-md hover:-translate-y-[1px] transition-all duration-200 overflow-hidden ${className}`}
     >
       {/* 1. FLIGHT CARD VARIANT */}
       {option.service === 'flight' && (

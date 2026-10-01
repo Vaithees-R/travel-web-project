@@ -1,10 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Compass, Layers, Route, Code2 } from 'lucide-react';
 
-export const Footer: React.FC = () => {
+/**
+ * Editorial Black Storytelling Footer — displayed primarily on /about
+ */
+export const EditorialFooter: React.FC = () => {
   return (
-    <footer className="bg-neutral-950 text-neutral-400 mt-24 border-t border-neutral-800">
+    <footer data-testid="editorial-footer" className="bg-neutral-950 text-neutral-400 mt-24 border-t border-neutral-800">
       {/* Product & Design Philosophy Bar (Honest, non-commercial language) */}
       <div className="border-b border-neutral-800/80 py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center sm:text-left">
@@ -34,13 +37,13 @@ export const Footer: React.FC = () => {
             </div>
             <div>
               <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Independent Prototype</h4>
-              <p className="text-xs text-neutral-400 mt-0.5">Experimental design system built with React 19, TypeScript, and Tailwind CSS</p>
+              <p className="text-xs text-neutral-400 mt-0.5">Curated travel simulator built with React 19, TypeScript, and FastAPI</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Footer Navigation */}
+      {/* Main Editorial Footer Navigation */}
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-8">
         {/* Brand narrative */}
         <div className="col-span-2 space-y-3">
@@ -97,4 +100,55 @@ export const Footer: React.FC = () => {
       </div>
     </footer>
   );
+};
+
+/**
+ * Standard Site Minimal Footer — displayed across normal service pages
+ */
+export const MinimalFooter: React.FC = () => {
+  return (
+    <footer data-testid="minimal-footer" className="border-t border-neutral-200/80 bg-white py-6 text-center text-xs text-neutral-500 mt-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-2 font-semibold text-neutral-900">
+          <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs border border-emerald-100">
+            <Compass className="w-3.5 h-3.5" />
+          </div>
+          <span className="tracking-tight">
+            Voyage<span className="text-emerald-600">Hub</span>
+          </span>
+        </div>
+
+        <nav aria-label="Footer Quick Links" className="flex items-center gap-2 sm:gap-3 text-neutral-600 font-medium text-xs">
+          <Link to="/flights" className="hover:text-neutral-900 transition-colors">Flights</Link>
+          <span className="text-neutral-300">·</span>
+          <Link to="/trains" className="hover:text-neutral-900 transition-colors">Trains</Link>
+          <span className="text-neutral-300">·</span>
+          <Link to="/buses" className="hover:text-neutral-900 transition-colors">Buses</Link>
+          <span className="text-neutral-300">·</span>
+          <Link to="/cabs" className="hover:text-neutral-900 transition-colors">Cabs</Link>
+          <span className="text-neutral-300">·</span>
+          <Link to="/about" className="hover:text-neutral-900 transition-colors">About</Link>
+        </nav>
+
+        <div className="text-neutral-400 text-[11px] font-mono">
+          © 2026 VoyageHub. All rights reserved.
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+/**
+ * Smart Contextual Footer
+ * Shows large editorial black storytelling section on /about, and minimal footer everywhere else.
+ */
+export const Footer: React.FC = () => {
+  const location = useLocation();
+  const isAboutPage = location.pathname === '/about';
+
+  if (isAboutPage) {
+    return <EditorialFooter />;
+  }
+
+  return <MinimalFooter />;
 };

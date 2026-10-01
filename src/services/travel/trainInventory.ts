@@ -24,7 +24,7 @@ export const TRAIN_INVENTORY: TrainOption[] = [
     availableUnits: 64,
     rating: 4.9,
     image: TRAIN_IMAGES[0]?.src,
-    amenities: ['Catering Included', 'Executive Rotating Seats', 'Bio-Vacuum Restrooms', 'Live GPS Tracking'],
+    amenities: ['Catering Included', 'Executive Rotating Seats', 'Bio-Vacuum Restrooms', 'Route Schematics'],
     trainClasses: [
       { className: 'CC', fare: 1750, available: 52, status: 'Available' },
       { className: 'EC', fare: 3300, available: 12, status: 'Available' },

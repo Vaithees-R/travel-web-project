@@ -53,8 +53,22 @@ def format_booking_response(b: Booking) -> BookingRead:
     )
 
 def create_booking(db: Session, user_id: str, data: BookingCreate) -> BookingRead:
-    # Guarantee user ownership strictly from authenticated JWT user_id
+    # 1. Reject bookings where simulated payment failed
+    if data.paymentStatus and data.paymentStatus.lower() == "failed":
+        raise ValueError("Cannot create a confirmed booking when payment has failed.")
+
+    # 2. Check for duplicate submission / ID collision
     booking_id = data.bookingId if (data.bookingId and data.bookingId.startswith("VH-")) else generate_booking_id()
+    if data.bookingId:
+        existing = db.query(Booking).filter(Booking.id == booking_id).first()
+        if existing:
+            if existing.user_id == user_id:
+                # Idempotent retry by the same user: return existing booking safely
+                return format_booking_response(existing)
+            else:
+                # ID collision with another user's booking: generate fresh secure ID
+                booking_id = generate_booking_id()
+
     booking_ref = data.bookingRef or generate_realistic_reference(data.service)
 
     travel_opt = data.travelOption
@@ -126,6 +140,9 @@ def cancel_booking(db: Session, booking_id: str, user_id: str) -> Optional[Booki
     )
     if not record:
         return None
+
+    if record.status == "cancelled":
+        return format_booking_response(record)
 
     record.status = "cancelled"
     record.payment_status = "refunded"

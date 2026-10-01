@@ -22,7 +22,7 @@ export const TRAVEL_PARTNERS: Record<'flights' | 'trains' | 'buses' | 'cabs', Pa
     { id: 'b-1', title: 'KSRTC / APSRTC', text: 'State transport corporations with safety records', category: 'buses' },
     { id: 'b-2', title: 'Zingbus Electric', text: 'Zero-emission connected luxury intercity coaches', category: 'buses' },
     { id: 'b-3', title: 'VRL Travels', text: 'Extensive multi-axle sleeper bus connectivity', category: 'buses' },
-    { id: 'b-4', title: 'IntrCity SmartBus', text: 'Standardized boarding lounges and live tracking', category: 'buses' },
+    { id: 'b-4', title: 'IntrCity SmartBus', text: 'Standardized boarding lounges and route tracking', category: 'buses' },
   ],
   cabs: [
     { id: 'c-1', title: 'Sedan Prime', text: 'Comfortable air-conditioned city & airport rides', category: 'cabs' },

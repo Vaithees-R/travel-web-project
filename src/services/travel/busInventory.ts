@@ -27,7 +27,7 @@ export const BUS_INVENTORY: BusOption[] = [
     availableUnits: 14,
     rating: 4.8,
     image: BUS_IMAGES[0]?.src,
-    amenities: ['Private Berth Curtains', 'USB-C Fast Charging', 'Fresh Blanket & Pillow', 'Live GPS Tracking', 'Lounge Boarding'],
+    amenities: ['Private Berth Curtains', 'USB-C Fast Charging', 'Fresh Blanket & Pillow', 'Route Visibility', 'Lounge Boarding'],
   },
   {
     id: 'bus-blr-maa-airawat',
@@ -107,7 +107,7 @@ export const BUS_INVENTORY: BusOption[] = [
     availableUnits: 8,
     rating: 4.7,
     image: BUS_IMAGES[0]?.src,
-    amenities: ['Spacious Berths', 'USB Charging', 'Dedicated Food Court Break', 'Live Tracking'],
+    amenities: ['Spacious Berths', 'USB Charging', 'Dedicated Food Court Break', 'Route Visibility'],
   },
   {
     id: 'bus-bom-goi-paulo',
@@ -215,7 +215,7 @@ export const BUS_INVENTORY: BusOption[] = [
     availableUnits: 15,
     rating: 4.5,
     image: BUS_IMAGES[2]?.src,
-    amenities: ['Individual Reading Lights', 'Soft Warm Blanket', 'Punctual Dispatch', 'Live Tracking'],
+    amenities: ['Individual Reading Lights', 'Soft Warm Blanket', 'Punctual Dispatch', 'Journey Tracking'],
   },
 
   // 5. Chennai -> Madurai
