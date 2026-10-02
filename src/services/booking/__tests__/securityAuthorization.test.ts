@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { api, tokenStorage, ApiError } from '../../api';
+import { api, tokenStorage } from '../../api';
 import { PaymentService, TEST_PAYMENT_PRESETS } from '../../payment/paymentService';
 
 describe('Phase 11 — Frontend Security & Authorization QA', () => {
