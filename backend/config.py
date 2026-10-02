@@ -22,12 +22,17 @@ class Settings(BaseSettings):
     JWT_EXPIRE_MINUTES: int = int(os.getenv("JWT_EXPIRE_MINUTES", "1440")) # 24 hours
     
     # CORS
-    CORS_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ]
+    raw_cors: str = os.getenv("CORS_ORIGINS", "")
+    CORS_ORIGINS: List[str] = (
+        [origin.strip() for origin in raw_cors.split(",") if origin.strip()]
+        if raw_cors
+        else [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ]
+    )
 
     model_config = {
         "env_file": ".env",
